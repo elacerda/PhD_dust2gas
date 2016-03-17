@@ -201,8 +201,8 @@ if __name__ == '__main__':
     tbl_integrated_neb = h5file.create_table(group, 'integrated_neb', zone_neb, 'Zone SF data')
     
     tbl_tSF.append([x for x in enumerate(tSF__T)])
-    tbl_tSF.flush()
     tbl_tSF.cols.id.create_index()
+    tbl_tSF.flush()
     
     for g in tbl_gals:
         t_init_gal = time.clock()
@@ -325,5 +325,17 @@ if __name__ == '__main__':
     tbl_zone_neb.cols.id_gal.create_index()
     tbl_zone_neb.cols.id_zone.create_index()
     tbl_zone_neb.cols.flag_BPT.create_index()
+    tbl_zone_neb.cols.flag_WHAN.create_index()
+    tbl_integrated_SF.cols.id_gal.create_index()
+    tbl_integrated_SF.cols.id_tSF.create_index()
+    tbl_integrated_neb.cols.id_gal.create_index()
+    tbl_integrated_neb.cols.flag_BPT.create_index()
+    tbl_integrated_neb.cols.flag_WHAN.create_index()
+    
+    tbl_zone_SF.flush()
+    tbl_zone_neb.flush()
+    tbl_integrated_SF.flush()
+    tbl_integrated_neb.flush()
+
     h5file.close()
     print 'total time: %.2f' % (time.clock() - t_init_prog)    
