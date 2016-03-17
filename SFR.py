@@ -87,7 +87,8 @@ def parser_args(args_str):
         'eml_cube_dir' : '/Users/lacerda/CALIFA/rgb-gas/v20_q050.d15a',
         'eml_cube_suffix' : '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.fits', 
         'gasprop_cube_dir' : '/Users/lacerda/CALIFA/rgb-gas/v20_q050.d15a/prop',
-        'gasprop_cube_suffix' : '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.GasProp.fits', 
+        'gasprop_cube_suffix' : '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.GasProp.fits',
+        'group' : 'young' 
     }
     
     parser = ap.ArgumentParser(description = '%s' % args_str)
@@ -143,6 +144,10 @@ def parser_args(args_str):
                         metavar = 'FRAC',
                         type = float,
                         default = default_args['maxtauvneberr'])
+    parser.add_argument('--group',
+                        metavar = 'GROUPNAME',
+                        type = str,
+                        default = default_args['group'])
     
     args = parser.parse_args()
 
@@ -178,7 +183,7 @@ if __name__ == '__main__':
     args = parser_args(sys.argv[0])
     debug_var(True, args = args.__dict__)    
 
-    tSF__T = np.array([1, 3.2, 10, 100]) * 1e7
+    tSF__T = np.array([1, 3.2, 10, 50, 100]) * 1e7
     N_T = len(tSF__T)
     
     h5file = tbl.open_file(args.hdf5, mode = 'r+')
@@ -186,7 +191,9 @@ if __name__ == '__main__':
     tbl_zone = h5file.root.pycasso.zones
     tbl_integrated = h5file.root.pycasso.integrated
     
-    group = h5file.create_group('/', 'young', 'young zones calculation', filters = tbl.Filters(1))
+    group_description = 'minpopx:%.2f/mintauV:%.2f/mintauVneb:%.2f/maxtauVneberr:%.2f - zones calculation' % (args.minpopx, args.mintauv, args.mintauvneb, args.maxtauvneberr)
+    group = h5file.create_group('/', args.group, group_description, 
+                                filters = tbl.Filters(1))
     tbl_tSF = h5file.create_table(group, 'tSF', tSF, 'tSF data')
     tbl_zone_SF = h5file.create_table(group, 'zones_SF', zone_SF, 'tSF data')
     tbl_integrated_SF = h5file.create_table(group, 'integrated_SF', zone_SF, 'tSF data')
