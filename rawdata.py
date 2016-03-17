@@ -6,7 +6,11 @@ from CALIFAUtils.scripts import read_gal_cubes
 from CALIFAUtils.scripts import get_morfologia
 from CALIFAUtils.scripts import sort_gals
 from CALIFAUtils.scripts import debug_var
+from CALIFAUtils.objects import GasProp
 from CALIFAUtils.scripts import my_morf
+from tables_description import galaxy
+from tables_description import zone
+from pycasso import fitsQ3DataCube
 import argparse as ap
 import tables as tbl
 import numpy as np
@@ -64,82 +68,44 @@ def parser_args(args_str):
                         default = default_args['gasprop_cube_suffix'])
     
     args = parser.parse_args()
+    args.EL = (args.eml_cube_dir is not None)
+    args.GP = (args.gasprop_cube_dir is not None)
+    
+    if args.pycasso_cube_dir[-1] != '/':
+        args.pycasso_cube_dir += '/'
+    if args.EL and (args.eml_cube_dir[-1] != '/'):
+        args.eml_cube_dir += '/'
+    if args.GP and (args.gasprop_cube_dir[-1] != '/'):
+        args.gasprop_cube_dir += '/'
 
     return args
 
-class galaxy(tbl.IsDescription):
-    id                          = tbl.UInt16Col(pos = 1)
-    name                        = tbl.StringCol(20, pos = 2)
-    califaID                    = tbl.StringCol(5, pos = 3)
-    N_zones                     = tbl.UInt16Col(pos = 4)
-    distance_Mpc                = tbl.Float64Col(pos = 5)
-    redshift                    = tbl.Float64Col(pos = 6)
-    m_type                      = tbl.Int32Col(pos = 7) 
-    ba                          = tbl.Float64Col(pos = 8)
-    ba_PyCASSO                  = tbl.Float64Col(pos = 9)
-    ParsecPerPixel              = tbl.Float64Col(pos = 10)
-    Mr                          = tbl.Float64Col(pos = 11)
-    ur                          = tbl.Float64Col(pos = 12)
-    
-    # Syn
-    HLR_pix                     = tbl.Float64Col(pos = 13)
-    HMR_pix                     = tbl.Float64Col(pos = 14)
-    integrated_tau_V            = tbl.Float64Col(pos = 15)
-    at_flux_GAL                 = tbl.Float64Col(pos = 16)
-    
-    # Neb
-    integrated_tau_V_neb        = tbl.Float64Col(pos = 17)
-    integrated_etau_V_neb       = tbl.Float64Col(pos = 18)
-    integrated_F_obs_Hb         = tbl.Float64Col(pos = 19)
-    integrated_F_obs_O3         = tbl.Float64Col(pos = 20)
-    integrated_F_obs_Ha         = tbl.Float64Col(pos = 21)
-    integrated_F_obs_N2         = tbl.Float64Col(pos = 22)
-    integrated_eF_obs_Hb        = tbl.Float64Col(pos = 23)
-    integrated_eF_obs_O3        = tbl.Float64Col(pos = 24)
-    integrated_eF_obs_Ha        = tbl.Float64Col(pos = 25)
-    integrated_eF_obs_N2        = tbl.Float64Col(pos = 26)
-    integrated_baseline_Hb      = tbl.Float64Col(pos = 27)
-    integrated_baseline_O3      = tbl.Float64Col(pos = 28)
-    integrated_baseline_Ha      = tbl.Float64Col(pos = 29)
-    integrated_baseline_N2      = tbl.Float64Col(pos = 30)
-    integrated_EW_Hb            = tbl.Float64Col(pos = 31)
-    integrated_EW_O3            = tbl.Float64Col(pos = 32)
-    integrated_EW_Ha            = tbl.Float64Col(pos = 33)
-    integrated_EW_N2            = tbl.Float64Col(pos = 34)
-    
-class zone(tbl.IsDescription):
-    id_gal                  = tbl.UInt16Col(pos = 1)
-    id_zone                 = tbl.UInt16Col(pos = 2)
-    distance_HLR            = tbl.Float64Col(pos = 3)
-    area_pc2                = tbl.Float64Col(pos = 4)
-    
-    # Syn
-    Mcor                    = tbl.Float64Col(pos = 5)
-    tau_V                   = tbl.Float64Col(pos = 6)
-    McorSD                  = tbl.Float64Col(pos = 7)
-    at_flux                 = tbl.Float64Col(pos = 8)
-    at_mass                 = tbl.Float64Col(pos = 9)
-    
-    # Neb
-    tau_V_neb               = tbl.Float64Col(pos = 10)
-    etau_V_neb              = tbl.Float64Col(pos = 11)
-    F_obs__Hb               = tbl.Float64Col(pos = 12)
-    F_obs__O3               = tbl.Float64Col(pos = 13)
-    F_obs__Ha               = tbl.Float64Col(pos = 14)
-    F_obs__N2               = tbl.Float64Col(pos = 15)
-    eF_obs__Hb              = tbl.Float64Col(pos = 16)
-    eF_obs__O3              = tbl.Float64Col(pos = 17)
-    eF_obs__Ha              = tbl.Float64Col(pos = 18)
-    eF_obs__N2              = tbl.Float64Col(pos = 19)
-    baseline_Hb             = tbl.Float64Col(pos = 20)
-    baseline_O3             = tbl.Float64Col(pos = 21)
-    baseline_Ha             = tbl.Float64Col(pos = 22)
-    baseline_N2             = tbl.Float64Col(pos = 23)
-    EW_Hb                   = tbl.Float64Col(pos = 24)
-    EW_O3                   = tbl.Float64Col(pos = 25)
-    EW_Ha                   = tbl.Float64Col(pos = 26)
-    EW_N2                   = tbl.Float64Col(pos = 27)
-    logOH                   = tbl.Float64Col(pos = 28)
+def load_gal_cubes(args, califaID):
+    pycasso_cube_file = args.pycasso_cube_dir + califaID + args.pycasso_cube_suffix
+    K = fitsQ3DataCube(pycasso_cube_file)
+    if args.EL:
+        eml_cube_file = args.eml_cube_dir + califaID + args.eml_cube_suffix
+        K.loadEmLinesDataCube(eml_cube_file)
+    if args.GP:
+        gasprop_cube_file = args.gasprop_cube_dir + califaID + args.gasprop_cube_suffix
+        K.GP = GasProp(gasprop_cube_file)
+    return K
+
+def verify_files(K, califaID, EL = True, GP = True):
+    if K is None:
+        print '<<< %s galaxy: miss files' % califaID
+        return 0, False
+    if EL == True and K.EL is None:
+        print '<<< %s galaxy: miss EmLines files' % califaID
+        return 1, False
+        if K.EL.flux[0, :].sum() == 0.:
+            print '<<< %s EmLines FITS problem' % califaID
+            return 2, False
+    if GP is True and K.GP._hdulist is None:
+        print '<<< %s galaxy: miss gasprop file' % califaID
+        return 2, False
+    # Problem in FITS file
+    return 0, True       
     
 if __name__ == '__main__':
     # Saving the initial time
@@ -149,26 +115,33 @@ if __name__ == '__main__':
     args = parser_args(sys.argv[0])
     debug_var(True, args = args.__dict__)    
 
-    h5file = tbl.open_file('teste.h5', mode =  'w', title = 'Test file')
+    h5file = tbl.open_file(args.hdf5, mode =  'w', title = 'Test file')
     group = h5file.create_group('/', 'pycasso', 'Galaxy PyCASSO data', filters = tbl.Filters(1))
-    table_main = h5file.create_table(group, 'main', galaxy, 'Main data')
-    table_zone = h5file.create_table(group, 'zones', zone, 'Zone data')
-    
-    gals, _ = sort_gals(args.gals, order = 1)
-    
-    r = table_main.row
-    for iGal, gal in enumerate(gals):
-        t_init_gal = time.clock()
-
-        K = read_gal_cubes(gal, 
-                           debug = args.debug, 
-                           pycasso_cube_dir = args.pycasso_cube_dir, 
-                           pycasso_cube_suffix = args.pycasso_cube_suffix,
-                           eml_cube_dir = args.eml_cube_dir, 
-                           eml_cube_suffix = args.eml_cube_suffix,
-                           gasprop_cube_dir = args.gasprop_cube_dir, 
-                           gasprop_cube_suffix = args.gasprop_cube_suffix)
+    tbl_main = h5file.create_table(group, 'main', galaxy, 'Main data')
+    tbl_zone = h5file.create_table(group, 'zones', zone, 'Zone data')
+    tbl_integrated = h5file.create_table(group, 'integrated', zone, 'Integrated data')
         
+    gals, _ = sort_gals(args.gals, order = 1)
+    N_gals = len(gals)
+    max_gals = N_gals
+    if args.debug:
+        max_gals = 10
+    
+    for iGal, gal in enumerate(gals[0:max_gals]):
+        t_init_gal = time.clock()
+        
+        K = load_gal_cubes(args, gal)
+        sit, verify = verify_files(K, gal, EL = args.EL, GP = args.GP)
+        
+        if verify is not True:
+            print '<<< ', gal, sit
+            if sit == 1:
+                K.close()
+            elif sit == 2:
+                K.EL.close()
+                K.close()
+            continue
+
         pa, ba = K.getEllipseParams()
         K.setGeometry(pa, ba)
     
@@ -203,29 +176,52 @@ if __name__ == '__main__':
             np.float(K.masterListData['u-r']), 
             K.HLR_pix, 
             K.getHalfRadius(K.McorSD__yx), 
-            K.integrated_keywords['A_V'] * AVtoTauV, 
-            at_flux_GAL,
-            K.EL.integrated_tau_V_neb, 
-            K.EL.integrated_tau_V_neb_err,
-            K.EL.integrated_flux[i_Hb], 
-            K.EL.integrated_flux[i_O3],
-            K.EL.integrated_flux[i_Ha], 
-            K.EL.integrated_flux[i_N2],
-            K.EL.integrated_eflux[i_Hb], 
-            K.EL.integrated_eflux[i_O3],
-            K.EL.integrated_eflux[i_Ha], 
-            K.EL.integrated_eflux[i_N2],
-            K.EL.integrated_baseline[i_Hb], 
-            K.EL.integrated_baseline[i_O3],
-            K.EL.integrated_baseline[i_Ha], 
-            K.EL.integrated_baseline[i_N2],
-            K.EL.integrated_EW[i_Hb], 
-            K.EL.integrated_EW[i_O3],
-            K.EL.integrated_EW[i_Ha], 
-            K.EL.integrated_EW[i_N2],
         )]
-        table_main.append(main_data)
-        table_main.flush()
+        tbl_main.append(main_data)
+        tbl_main.flush()
+        
+        # integrated data stored as a zone with id -1
+        r = tbl_integrated.row
+        r['id_gal'] = iGal
+        r['tau_V']  =  K.integrated_keywords['A_V'] * AVtoTauV 
+        r['at_flux'] = at_flux_GAL
+        r['tau_V_neb'] = K.EL.integrated_tau_V_neb 
+        r['etau_V_neb'] = K.EL.integrated_tau_V_neb_err
+        r['F_obs_Hb'] = K.EL.integrated_flux[i_Hb]
+        r['F_obs_O3'] = K.EL.integrated_flux[i_O3]
+        r['F_obs_Ha'] = K.EL.integrated_flux[i_Ha] 
+        r['F_obs_N2'] = K.EL.integrated_flux[i_N2]
+        r['eF_obs_Hb'] = K.EL.integrated_eflux[i_Hb] 
+        r['eF_obs_O3'] = K.EL.integrated_eflux[i_O3]
+        r['eF_obs_Ha'] = K.EL.integrated_eflux[i_Ha] 
+        r['eF_obs_N2'] = K.EL.integrated_eflux[i_N2]
+        r['baseline_Hb'] = K.EL.integrated_baseline[i_Hb] 
+        r['baseline_O3'] = K.EL.integrated_baseline[i_O3]
+        r['baseline_Ha'] = K.EL.integrated_baseline[i_Ha] 
+        r['baseline_N2'] = K.EL.integrated_baseline[i_N2]
+        r['EW_Hb'] = K.EL.integrated_EW[i_Hb] 
+        r['EW_O3'] = K.EL.integrated_EW[i_O3]
+        r['EW_Ha'] = K.EL.integrated_EW[i_Ha] 
+        r['EW_N2'] = K.EL.integrated_EW[i_N2]
+        r['sigma_Hb'] = K.EL.integrated_sigma[i_Hb]
+        r['sigma_O3'] = K.EL.integrated_sigma[i_O3]
+        r['sigma_Ha'] = K.EL.integrated_sigma[i_Ha]
+        r['sigma_N2'] = K.EL.integrated_sigma[i_N2]
+        r['esigma_Hb'] = K.EL.integrated_esigma[i_Hb]
+        r['esigma_O3'] = K.EL.integrated_esigma[i_O3]
+        r['esigma_Ha'] = K.EL.integrated_esigma[i_Ha]
+        r['esigma_N2'] = K.EL.integrated_esigma[i_N2]
+        r['pos_Hb'] = K.EL.integrated_pos[i_Hb]
+        r['pos_O3'] = K.EL.integrated_pos[i_O3]
+        r['pos_Ha'] = K.EL.integrated_pos[i_Ha]
+        r['pos_N2'] = K.EL.integrated_pos[i_N2]
+        r['epos_Hb'] = K.EL.integrated_epos[i_Hb]
+        r['epos_O3'] = K.EL.integrated_epos[i_O3]
+        r['epos_Ha'] = K.EL.integrated_epos[i_Ha]
+        r['epos_N2'] = K.EL.integrated_epos[i_N2]
+        r.append()
+        tbl_integrated.flush()
+        del r
     
         # zip to transpose arrays to col_arrays
         zone_data = zip(
@@ -258,15 +254,44 @@ if __name__ == '__main__':
             K.EL.EW[i_O3], 
             K.EL.EW[i_Ha], 
             K.EL.EW[i_N2], 
+            K.EL.sigma[i_Hb],
+            K.EL.sigma[i_O3],
+            K.EL.sigma[i_Ha],
+            K.EL.sigma[i_N2],
+            K.EL.esigma[i_Hb],
+            K.EL.esigma[i_O3],
+            K.EL.esigma[i_Ha],
+            K.EL.esigma[i_N2],
+            K.EL.pos[i_Hb],
+            K.EL.pos[i_O3],
+            K.EL.pos[i_Ha],
+            K.EL.pos[i_N2],
+            K.EL.epos[i_Hb],
+            K.EL.epos[i_O3],
+            K.EL.epos[i_Ha],
+            K.EL.epos[i_N2],
             K.EL.Zneb_M13__z,
         )
-        table_zone.append(zone_data)
-        table_zone.flush()
+        tbl_zone.append(zone_data)
+        tbl_zone.flush()
 
         K.GP.close()
         K.EL.close()
         K.close()
         del K
         print 'time per galaxy: %s %.2f' % (gal, time.clock() - t_init_gal)
+        
+    tbl_main.cols.id.create_index()
+    tbl_main.cols.califaID.create_index()
+    tbl_main.cols.m_type.create_index()
+    tbl_zone.cols.id_gal.create_index()
+    tbl_zone.cols.id.create_index()
+    tbl_zone.cols.tau_V.create_index()
+    tbl_integrated.cols.id_gal.create_index()
+
+    tbl_main.flush()
+    tbl_zone.flush()
+    tbl_integrated.flush()
+
     h5file.close()
     print 'total time: %.2f' % (time.clock() - t_init_prog)    
