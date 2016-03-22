@@ -292,13 +292,14 @@ if __name__ == '__main__':
         del K
         print 'time per galaxy: %s %.2f' % (gal, time.clock() - t_init_gal)
         
-    tbl_main.cols.id.create_index()
-    tbl_main.cols.califaID.create_index()
-    tbl_main.cols.m_type.create_index()
-    tbl_zone.cols.id_gal.create_index()
-    tbl_zone.cols.id.create_index()
+    tbl_main.cols.id.create_csindex()
+    tbl_main.cols.califaID.create_csindex()
+    tbl_main.cols.m_type.create_csindex()
+    tbl_zone.cols.id_gal.create_csindex()
+    tbl_zone.cols.id.create_csindex()
+    tbl_zone.cols.i_zone.create_index()
     tbl_zone.cols.tau_V.create_index()
-    tbl_integrated.cols.id_gal.create_index()
+    tbl_integrated.cols.id_gal.create_csindex()
 
     tbl_main.flush()
     tbl_zone.flush()

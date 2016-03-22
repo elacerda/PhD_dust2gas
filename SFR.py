@@ -213,7 +213,7 @@ if __name__ == '__main__':
 
         g_props = tbl_zones.read_where('id_gal == gid', {'gid' : g['id']})
         g_int_props = tbl_integrated.read_where('id_gal == gid', {'gid' : g['id']})
-        id_zones = g_props['id'][:]
+        id_zones = g_props['id']
         _izS = np.argsort(g_props['id']) # zone index sorted by id
 
         ################### NEB ###################
@@ -343,18 +343,31 @@ if __name__ == '__main__':
         del K
         print 'time per galaxy: %s %.2f' % (g['califaID'], time.clock() - t_init_gal)
 
-    tbl_zone_SF.cols.id_gal.create_index()
-    tbl_zone_SF.cols.id_zone.create_index()
-    tbl_zone_SF.cols.id_tSF.create_index()
-    tbl_zone_neb.cols.id_gal.create_index()
-    tbl_zone_neb.cols.id_zone.create_index()
+    tbl_zone_SF.cols.id_gal.create_csindex()
+    tbl_zone_SF.cols.id_zone.create_csindex()
+    tbl_zone_SF.cols.id_tSF.create_csindex()
+    tbl_zone_SF.cols.i_zone.create_index()
+    tbl_zone_SF.cols.flag_xY.create_index()
+    tbl_zone_SF.cols.flag_tau_V.create_index()
+    
+    tbl_zone_neb.cols.id_gal.create_csindex()
+    tbl_zone_neb.cols.id_zone.create_csindex()
+    tbl_zone_neb.cols.i_zone.create_index()
     tbl_zone_neb.cols.flag_BPT.create_index()
     tbl_zone_neb.cols.flag_WHAN.create_index()
-    tbl_integrated_SF.cols.id_gal.create_index()
-    tbl_integrated_SF.cols.id_tSF.create_index()
-    tbl_integrated_neb.cols.id_gal.create_index()
+    tbl_zone_neb.cols.flag_tau_V_neb.create_index()
+    tbl_zone_neb.cols.flag_etau_V_neb.create_index()
+    
+    tbl_integrated_SF.cols.id_gal.create_csindex()
+    tbl_integrated_SF.cols.id_tSF.create_csindex()
+    tbl_integrated_SF.cols.flag_xY.create_index()
+    tbl_integrated_SF.cols.flag_tau_V.create_index()
+    
+    tbl_integrated_neb.cols.id_gal.create_csindex()
     tbl_integrated_neb.cols.flag_BPT.create_index()
     tbl_integrated_neb.cols.flag_WHAN.create_index()
+    tbl_integrated_neb.cols.flag_tau_V_neb.create_index()
+    tbl_integrated_neb.cols.flag_etau_V_neb.create_index()
     
     tbl_zone_SF.flush()
     tbl_zone_neb.flush()
