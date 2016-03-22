@@ -27,10 +27,11 @@ def parser_args(args_str):
         'eml_cube_dir' : '/Users/lacerda/CALIFA/rgb-gas/v20_q050.d15a',
         'eml_cube_suffix' : '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.fits', 
         'gasprop_cube_dir' : '/Users/lacerda/CALIFA/rgb-gas/v20_q050.d15a/prop',
-        'gasprop_cube_suffix' : '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.GasProp.fits', 
+        'gasprop_cube_suffix' : '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.GasProp.fits',
+        'morph_file' : '/Users/lacerda/CALIFA/morph_eye_class.csv',  
     }
     
-    parser = ap.ArgumentParser(description = '%s' % args_str)
+    parser = ap.ArgumentParser(description = '%s' % args_str) 
     parser.add_argument('--debug', '-D',
                         action = 'store_true',
                         default = default_args['debug'])
@@ -66,6 +67,10 @@ def parser_args(args_str):
                         metavar = 'SUFFIX',
                         type = str,
                         default = default_args['gasprop_cube_suffix'])
+    parser.add_argument('--morph_file', '-M',
+                        metavar = 'FILE',
+                        type = str,
+                        default = default_args['morph_file'])
     
     args = parser.parse_args()
     args.EL = (args.eml_cube_dir is not None)
@@ -163,7 +168,7 @@ if __name__ == '__main__':
         denominator__z = K.Lobn__tZz.sum(axis = 1).sum(axis = 0)
         at_flux_GAL = numerator__z.sum() / denominator__z.sum()
         AVtoTauV = 1. / (np.log10(np.exp(1)) / 0.4)
-        m_type = my_morf(get_morfologia(K.califaID)[0])
+        m_type = my_morf(get_morfologia(K.califaID, morph_file = args.morph_file)[0])
     
         # Must follow pos order in galaxy class
         main_data = [(
