@@ -126,6 +126,8 @@ if __name__ == '__main__':
     max_gals = N_gals
     if args.debug:
         max_gals = 10
+        
+    id_zone_ini = id_zone_fin = 0
     
     for iGal, gal in enumerate(gals[0:max_gals]):
         t_init_gal = time.clock()
@@ -145,6 +147,9 @@ if __name__ == '__main__':
         pa, ba = K.getEllipseParams()
         K.setGeometry(pa, ba)
     
+        id_zone_ini = id_zone_fin
+        id_zone_fin = id_zone_ini + K.N_zone
+        
         Hb_central_wl = '4861'
         O3_central_wl = '5007'
         Ha_central_wl = '6563'
@@ -226,6 +231,7 @@ if __name__ == '__main__':
         # zip to transpose arrays to col_arrays
         zone_data = zip(
             np.zeros((K.N_zone), dtype = int) + iGal,
+            np.arange(id_zone_ini, id_zone_fin),
             np.arange(K.N_zone),
             K.zoneDistance_HLR,
             K.zoneArea_pc2,

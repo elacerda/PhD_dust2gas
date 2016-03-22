@@ -150,8 +150,6 @@ def parser_args(args_str):
                         default = default_args['group'])
     
     args = parser.parse_args()
-
-    args = parser.parse_args()
     args.EL = (args.eml_cube_dir is not None)
     args.GP = (args.gasprop_cube_dir is not None)
     
@@ -186,9 +184,11 @@ if __name__ == '__main__':
     tSF__T = np.array([1, 3.2, 10, 50, 100]) * 1e7
     N_T = len(tSF__T)
     
+    q = redenninglaws.Cardelli_RedLaw([4861, 5007, 6563, 6583])
+    
     h5file = tbl.open_file(args.hdf5, mode = 'r+')
     tbl_gals = h5file.root.pycasso.main
-    tbl_zone = h5file.root.pycasso.zones
+    tbl_zones = h5file.root.pycasso.zones
     tbl_integrated = h5file.root.pycasso.integrated
     
     group_description = 'minpopx:%.2f/mintauV:%.2f/mintauVneb:%.2f/maxtauVneberr:%.2f - zones calculation' % (args.minpopx, args.mintauv, args.mintauvneb, args.maxtauvneberr)
@@ -200,7 +200,7 @@ if __name__ == '__main__':
     tbl_zone_neb = h5file.create_table(group, 'zones_neb', zone_neb, 'Zone SF data')
     tbl_integrated_neb = h5file.create_table(group, 'integrated_neb', zone_neb, 'Zone SF data')
     
-    tbl_tSF.append([x for x in enumerate(tSF__T)])
+    tbl_tSF.append([t for t in enumerate(tSF__T)])
     tbl_tSF.cols.id.create_index()
     tbl_tSF.flush()
     
@@ -210,61 +210,32 @@ if __name__ == '__main__':
         K = load_gal_cubes(args, g['califaID'])
         pa, ba = K.getEllipseParams()
         K.setGeometry(pa, ba)
-        
-        for iT, tSF in enumerate(tSF__T):
-            x_Y__z, integrated_x_Y = calc_xY(K, tSF)
-            SFR__z, SFRSD__z = calc_SFR(K, tSF)
-            
-            tmp = np.zeros((g['N_zone']), dtype = np.int)
-            id_tSF = tmp + iT
-            id_gal = tmp + g['id']
-            zone_SF_data = zip(
-                id_gal, 
-                np.arange(g['N_zone']),
-                id_tSF, 
-                x_Y__z, 
-                SFR__z, 
-                SFRSD__z,
-            )
-            tbl_zone_SF.append(zone_SF_data)
-            tbl_zone_SF.flush()
-            del tmp
 
-            integrated_SFR = SFR__z.sum()
-            integrated_SFRSD = integrated_SFR / K.zoneArea_pc2.sum()
-            integrated_SF_data = [(
-                g['id'], 
-                -1,
-                iT, 
-                integrated_x_Y,
-                integrated_SFR,
-                integrated_SFRSD, 
-            )]
-            tbl_integrated_SF.append(integrated_SF_data)
-            tbl_integrated_SF.flush()
-            
-        g_props = tbl_zone.read_where('id_gal == gid', {'gid' : g['id']})
-        
-        # zone index sorted by id
-        _izS = np.argsort(g_props['id'])
-        
-        tau_V_neb = g_props['tau_V_neb'][_izS]
-        etau_V_neb = g_props['etau_V_neb'][_izS]
-        snr_Hb = g_props['F_obs_Hb'][_izS] / g_props['eF_obs_Hb'][_izS]
-        snr_O3 = g_props['F_obs_O3'][_izS] / g_props['eF_obs_O3'][_izS]
-        snr_Ha = g_props['F_obs_Ha'][_izS] / g_props['eF_obs_Ha'][_izS]
-        snr_N2 = g_props['F_obs_N2'][_izS] / g_props['eF_obs_N2'][_izS]
-        flag_BPT = np.bitwise_or(np.less(snr_Hb, 3), np.less(snr_O3, 3))
-        flag_BPT = np.bitwise_or(flag_BPT, np.less(snr_Ha, 3))
-        flag_BPT = np.bitwise_or(flag_BPT, np.less(snr_N2, 3))
-        flag_WHAN = np.bitwise_or(np.less(snr_Ha, 3), np.less(snr_N2, 3))
-        mask_HaHb = np.bitwise_or(np.less(snr_Hb, 3), np.less(snr_Ha, 3))
-        mask_tau_V_neb = np.bitwise_or(np.less(tau_V_neb, args.mintauvneb),
-                                       np.greater_equal(etau_V_neb, args.maxtauvneberr))
-        mask_neb = np.bitwise_or(mask_tau_V_neb, mask_HaHb)
-        
-        q = redenninglaws.Cardelli_RedLaw([4861, 5007, 6563, 6583])
-        expqtau = [ np.ma.exp(qcard * tau_V_neb) for qcard in q ]
+        g_props = tbl_zones.read_where('id_gal == gid', {'gid' : g['id']})
+        g_int_props = tbl_integrated.read_where('id_gal == gid', {'gid' : g['id']})
+        id_zones = g_props['id'][:]
+        _izS = np.argsort(g_props['id']) # zone index sorted by id
+
+        ################### NEB ###################
+        ################### NEB ###################
+        ################### NEB ################### 
+        tau_V_neb__z = g_props['tau_V_neb'][_izS]
+        etau_V_neb__z = g_props['etau_V_neb'][_izS]
+        snr_Hb__z = g_props['F_obs_Hb'][_izS] / g_props['eF_obs_Hb'][_izS]
+        snr_O3__z = g_props['F_obs_O3'][_izS] / g_props['eF_obs_O3'][_izS]
+        snr_Ha__z = g_props['F_obs_Ha'][_izS] / g_props['eF_obs_Ha'][_izS]
+        snr_N2__z = g_props['F_obs_N2'][_izS] / g_props['eF_obs_N2'][_izS]
+
+        flag_BPT__z = np.bitwise_or(np.less(snr_Hb__z, 3), np.less(snr_O3__z, 3))
+        flag_BPT__z = np.bitwise_or(flag_BPT__z, np.less(snr_Ha__z, 3))
+        flag_BPT__z = np.bitwise_or(flag_BPT__z, np.less(snr_N2__z, 3))
+        flag_WHAN__z = np.bitwise_or(np.less(snr_Ha__z, 3), np.less(snr_N2__z, 3))
+        flag_tau_V_neb__z = np.less(tau_V_neb__z, args.mintauvneb)
+        flag_etau_V_neb__z = np.greater(etau_V_neb__z, args.maxtauvneberr)
+        mask_HaHb__z = np.bitwise_or(np.less(snr_Hb__z, 3), np.less(snr_Ha__z, 3))
+        mask_tau_V_neb__z = np.bitwise_or(flag_tau_V_neb__z,flag_etau_V_neb__z)
+        mask_neb = np.bitwise_or(mask_tau_V_neb__z, mask_HaHb__z)
+        expqtau = [ np.ma.exp(qcard * tau_V_neb__z) for qcard in q ]
         L_obs_Ha__z = K.EL._F_to_L(g_props['F_obs_Ha'][_izS], g['distance_Mpc']) / L_sun
         L_int_Ha__z = np.where(~(mask_neb), L_obs_Ha__z * expqtau[2], L_obs_Ha__z)
         SFR_Ha__z = 3.13 * L_int_Ha__z 
@@ -272,19 +243,18 @@ if __name__ == '__main__':
         
         tmp = np.ones((g['N_zone']), dtype = np.int)
         zone_neb_data = zip(
-            tmp * g['id'], np.arange(g['N_zone']),
+            tmp * g['id'], id_zones, np.arange(g['N_zone']),
             L_obs_Ha__z, L_int_Ha__z,
             SFR_Ha__z, SFRSD_Ha__z,
-            flag_BPT, flag_WHAN,
+            flag_BPT__z, flag_WHAN__z,
+            flag_tau_V_neb__z, flag_etau_V_neb__z
         )
         tbl_zone_neb.append(zone_neb_data)
         tbl_zone_neb.flush()
 
-        g_int_props = tbl_integrated.read_where('id_gal == gid', {'gid' : g['id']})
-        integrated_tau_V_neb = g_int_props['tau_V_neb']
-        integrated_expqtau = [ np.ma.exp(qcard * integrated_tau_V_neb) for qcard in q ]
         integrated_tau_V_neb = g_int_props['tau_V_neb']
         integrated_etau_V_neb = g_int_props['etau_V_neb']
+        integrated_expqtau = [ np.ma.exp(qcard * integrated_tau_V_neb) for qcard in q ]
         integrated_snr_Hb = g_int_props['F_obs_Hb'] / g_int_props['eF_obs_Hb']
         integrated_snr_O3 = g_int_props['F_obs_O3'] / g_int_props['eF_obs_O3']
         integrated_snr_Ha = g_int_props['F_obs_Ha'] / g_int_props['eF_obs_Ha']
@@ -293,9 +263,10 @@ if __name__ == '__main__':
         integrated_flag_BPT = np.bitwise_or(integrated_flag_BPT, np.less(integrated_snr_Ha, 3))
         integrated_flag_BPT = np.bitwise_or(integrated_flag_BPT, np.less(integrated_snr_N2, 3))
         integrated_flag_WHAN = np.bitwise_or(np.less(integrated_snr_Ha, 3), np.less(integrated_snr_N2, 3))
+        integrated_flag_tau_V_neb = np.less(integrated_tau_V_neb, args.mintauvneb)
+        integrated_flag_etau_V_neb = np.greater(integrated_etau_V_neb, args.maxtauvneberr)
         integrated_mask_HaHb = np.bitwise_or(np.less(integrated_snr_Hb, 3), np.less(integrated_snr_Ha, 3))
-        integrated_mask_tau_V_neb = np.bitwise_or(np.less(integrated_tau_V_neb, args.mintauvneb),
-                                                  np.greater_equal(integrated_etau_V_neb, args.maxtauvneberr))
+        integrated_mask_tau_V_neb = np.bitwise_or(integrated_flag_tau_V_neb, integrated_flag_etau_V_neb)
         integrated_mask_neb = np.bitwise_or(integrated_mask_tau_V_neb, integrated_mask_HaHb)
         integrated_L_obs_Ha = K.EL._F_to_L(g_int_props['F_obs_Ha'], g['distance_Mpc']) / L_sun
         if integrated_mask_neb:
@@ -305,13 +276,66 @@ if __name__ == '__main__':
         integrated_SFR_Ha = SFR_Ha__z.sum()
         integrated_SFRSD_Ha = integrated_SFR_Ha / K.zoneArea_pc2.sum()
         integrated_zone_neb_data = [(
-            g['id'], -1,
+            g['id'], 
+            -1,
+            -1,
             integrated_L_obs_Ha, integrated_L_int_Ha,
             integrated_SFR_Ha, integrated_SFRSD_Ha,
-            integrated_flag_BPT, integrated_flag_WHAN
+            integrated_flag_BPT, integrated_flag_WHAN,
+            integrated_flag_tau_V_neb, integrated_flag_etau_V_neb
         )]
         tbl_integrated_neb.append(integrated_zone_neb_data)
-        tbl_integrated_neb.flush()
+        tbl_integrated_neb.flush()        
+        
+        ################### SYN ###################
+        ################### SYN ###################
+        ################### SYN ###################
+        tau_V__z = g_props['tau_V'][_izS]
+        integrated_tau_V = g_int_props['tau_V']
+
+        for iT, tSF in enumerate(tSF__T):
+            x_Y__z, integrated_x_Y = calc_xY(K, tSF)
+            SFR__z, SFRSD__z = calc_SFR(K, tSF)
+            
+            flag_xY = np.less(x_Y__z, args.minpopx)
+            flag_tau_V = np.less(K.tau_V__z, args.mintauv)
+            
+            tmp = np.zeros((g['N_zone']), dtype = np.int)
+            id_tSF = tmp + iT
+            id_gal = tmp + g['id']
+            zone_SF_data = zip(
+                id_gal, 
+                id_zones,
+                np.arange(g['N_zone']),
+                id_tSF, 
+                x_Y__z, 
+                SFR__z, 
+                SFRSD__z,
+                flag_xY,
+                flag_tau_V
+            )
+            tbl_zone_SF.append(zone_SF_data)
+            tbl_zone_SF.flush()
+            del tmp
+
+            integrated_flag_xY = np.less(integrated_x_Y, args.minpopx)
+            integrated_flag_tau_V = np.less(integrated_tau_V, args.mintauv)
+
+            integrated_SFR = SFR__z.sum()
+            integrated_SFRSD = integrated_SFR / K.zoneArea_pc2.sum()
+            integrated_SF_data = [(
+                g['id'], 
+                -1,
+                -1,
+                iT, 
+                integrated_x_Y,
+                integrated_SFR,
+                integrated_SFRSD,
+                integrated_flag_xY,
+                integrated_flag_tau_V 
+            )]
+            tbl_integrated_SF.append(integrated_SF_data)
+            tbl_integrated_SF.flush()
         
         K.GP.close()
         K.EL.close()
