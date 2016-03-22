@@ -134,6 +134,8 @@ if __name__ == '__main__':
         
     id_zone_ini = id_zone_fin = 0
     
+    id_gal = 0
+    
     for iGal, gal in enumerate(gals[0:max_gals]):
         t_init_gal = time.clock()
         
@@ -148,7 +150,7 @@ if __name__ == '__main__':
                 K.EL.close()
                 K.close()
             continue
-
+        
         pa, ba = K.getEllipseParams()
         K.setGeometry(pa, ba)
     
@@ -232,10 +234,9 @@ if __name__ == '__main__':
         r.append()
         tbl_integrated.flush()
         del r
-    
         # zip to transpose arrays to col_arrays
         zone_data = zip(
-            np.zeros((K.N_zone), dtype = int) + iGal,
+            np.zeros((K.N_zone), dtype = int) + id_gal,
             np.arange(id_zone_ini, id_zone_fin),
             np.arange(K.N_zone),
             K.zoneDistance_HLR,
@@ -291,6 +292,8 @@ if __name__ == '__main__':
         K.close()
         del K
         print 'time per galaxy: %s %.2f' % (gal, time.clock() - t_init_gal)
+        
+        id_gal += 1
         
     tbl_main.cols.id.create_csindex()
     tbl_main.cols.califaID.create_csindex()

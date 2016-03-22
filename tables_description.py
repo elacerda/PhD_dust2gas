@@ -22,7 +22,7 @@ class galaxy(tbl.IsDescription):
 class zone(tbl.IsDescription):
     id_gal                      = tbl.UInt16Col(pos = 1)
     id                          = tbl.Int64Col(pos = 2, dflt = -1)
-    i_zone                      = tbl.Int16Col(pos = 3, dflt = -1)
+    i_zone                      = tbl.Int64Col(pos = 3, dflt = -1)
     distance_HLR                = tbl.Float64Col(pos = 4, dflt = np.nan)
     area_pc2                    = tbl.Float64Col(pos = 5, dflt = np.nan)
     
@@ -76,8 +76,8 @@ class tSF(tbl.IsDescription):
     
 class zone_neb(tbl.IsDescription):
     id_gal                      = tbl.UInt16Col(pos = 1)
-    id_zone                     = tbl.Int16Col(pos = 2, dflt = -1)
-    i_zone                      = tbl.Int16Col(pos = 3, dflt = -1)
+    id_zone                     = tbl.Int64Col(pos = 2, dflt = -1)
+    i_zone                      = tbl.Int64Col(pos = 3, dlft = -1)
     L_obs_Ha                    = tbl.Float64Col(pos = 4, dflt = np.nan)
     L_int_Ha                    = tbl.Float64Col(pos = 5, dflt = np.nan)
     SFR                         = tbl.Float64Col(pos = 6, dflt = np.nan)
@@ -89,8 +89,8 @@ class zone_neb(tbl.IsDescription):
     
 class zone_SF(tbl.IsDescription):
     id_gal                      = tbl.UInt16Col(pos = 1)
-    id_zone                     = tbl.Int16Col(pos = 2, dflt = -1)
-    i_zone                      = tbl.Int16Col(pos = 3, dflt = -1)
+    id_zone                     = tbl.Int64Col(pos = 2, dflt = -1)
+    i_zone                      = tbl.Int64Col(pos = 3, dflt = -1)
     id_tSF                      = tbl.UInt8Col(pos = 4)
     xY                          = tbl.Float64Col(pos = 5, dflt = np.nan)
     SFR                         = tbl.Float64Col(pos = 6, dflt = np.nan)
