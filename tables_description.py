@@ -77,7 +77,7 @@ class tSF(tbl.IsDescription):
 class zone_neb(tbl.IsDescription):
     id_gal                      = tbl.UInt16Col(pos = 1)
     id_zone                     = tbl.Int64Col(pos = 2, dflt = -1)
-    i_zone                      = tbl.Int64Col(pos = 3, dlft = -1)
+    i_zone                      = tbl.Int64Col(pos = 3, dflt = -1)
     L_obs_Ha                    = tbl.Float64Col(pos = 4, dflt = np.nan)
     L_int_Ha                    = tbl.Float64Col(pos = 5, dflt = np.nan)
     SFR                         = tbl.Float64Col(pos = 6, dflt = np.nan)
