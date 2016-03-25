@@ -76,6 +76,10 @@ class zone(tbl.IsDescription):
 class tSF(tbl.IsDescription):
     id                          = tbl.UInt8Col(pos = 1)
     age                         = tbl.Float64Col(pos = 2)
+
+class tZ(tbl.IsDescription):
+    id                          = tbl.UInt8Col(pos = 1)
+    age                         = tbl.Float64Col(pos = 2)
     
 class zone_neb(tbl.IsDescription):
     id_gal                      = tbl.UInt16Col(pos = 1)
@@ -100,3 +104,15 @@ class zone_SF(tbl.IsDescription):
     SFRSD                       = tbl.Float64Col(pos = 7, dflt = np.nan)
     flag_xY                     = tbl.UInt8Col(pos = 8, dflt = 0)
     flag_tau_V                  = tbl.UInt8Col(pos = 9, dflt = 0)
+    
+class zone_Z(tbl.IsDescription):
+    id_gal                      = tbl.UInt16Col(pos = 1)
+    id_zone                     = tbl.Int64Col(pos = 2, dflt = -1)
+    i_zone                      = tbl.Int64Col(pos = 3, dflt = -1)
+    id_tZ                       = tbl.UInt8Col(pos = 4)
+    alogZ_flux                  = tbl.Float64Col(pos = 5, dflt = np.nan)
+    alogZ_mass                  = tbl.Float64Col(pos = 6, dflt = np.nan)
+    flag_xY                     = tbl.UInt8Col(pos = 7, dflt = 0)
+    
+    
+    
