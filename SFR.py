@@ -201,7 +201,7 @@ if __name__ == '__main__':
     tbl_integrated_neb = h5file.create_table(group, 'integrated_neb', zone_neb, 'Zone SF data')
     
     tbl_tSF.append([t for t in enumerate(tSF__T)])
-    tbl_tSF.cols.id.create_index()
+    tbl_tSF.cols.id.create_csindex()
     tbl_tSF.flush()
     
     for g in tbl_gals:
@@ -215,7 +215,7 @@ if __name__ == '__main__':
         g_int_props = tbl_integrated.read_where('id_gal == gid', {'gid' : g['id']})
         id_zones = g_props['id']
         _izS = np.argsort(g_props['id']) # zone index sorted by id
-
+        
         ################### NEB ###################
         ################### NEB ###################
         ################### NEB ################### 

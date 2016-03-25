@@ -165,6 +165,18 @@ if __name__ == '__main__':
         i_O3 = K.EL.lines.index(O3_central_wl)
         i_Ha = K.EL.lines.index(Ha_central_wl)
         i_N2 = K.EL.lines.index(N2_central_wl)
+
+        flag_RGB_OK__z = np.zeros((K.N_zone), dtype = np.bool_)
+        
+        for l in [Hb_central_wl, O3_central_wl, Ha_central_wl, N2_central_wl]:
+            pos = K.GP._dlcons[l]['pos']
+            sigma = K.GP._dlcons[l]['sigma']
+            snr = K.GP._dlcons[l]['SN']
+            tmp = K.EL._setMaskLineFluxNeg(l)
+            tmp |= K.EL._setMaskLineDisplacement(l, pos)
+            tmp |= K.EL._setMaskLineSigma(l, sigma)
+            tmp |= K.EL._setMaskLineSNR(l, snr)
+            flag_RGB_OK__z = np.bitwise_or(flag_RGB_OK__z, tmp)
         
         numerator__z = K.Lobn__tZz.sum(axis = 1).sum(axis = 0) * K.at_flux__z
         denominator__z = K.Lobn__tZz.sum(axis = 1).sum(axis = 0)
@@ -234,6 +246,7 @@ if __name__ == '__main__':
         r.append()
         tbl_integrated.flush()
         del r
+        
         # zip to transpose arrays to col_arrays
         zone_data = zip(
             np.zeros((K.N_zone), dtype = int) + id_gal,
@@ -283,6 +296,8 @@ if __name__ == '__main__':
             K.EL.epos[i_Ha],
             K.EL.epos[i_N2],
             K.EL.Zneb_M13__z,
+            flag_RGB_OK__z,
+            ~(K.filterResidual(w2 = 4600)),
         )
         tbl_zone.append(zone_data)
         tbl_zone.flush()

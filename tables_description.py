@@ -70,6 +70,9 @@ class zone(tbl.IsDescription):
     epos_N2                     = tbl.Float64Col(pos = 44, dflt = np.nan)
     logOH                       = tbl.Float64Col(pos = 45, dflt = np.nan)
     
+    flag_RGB                    = tbl.UInt8Col(pos = 46, dflt = 0)
+    flag_residual               = tbl.UInt8Col(pos = 47, dflt = 0)
+    
 class tSF(tbl.IsDescription):
     id                          = tbl.UInt8Col(pos = 1)
     age                         = tbl.Float64Col(pos = 2)
