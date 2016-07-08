@@ -25,13 +25,13 @@ def parser_args(args_str):
         'pycasso_cube_dir' : '/Users/lacerda/CALIFA/gal_fits/v20_q050.d15a',
         'pycasso_cube_suffix' : '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.fits',
         'eml_cube_dir' : '/Users/lacerda/CALIFA/rgb-gas/v20_q050.d15a',
-        'eml_cube_suffix' : '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.fits', 
+        'eml_cube_suffix' : '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.fits',
         'gasprop_cube_dir' : '/Users/lacerda/CALIFA/rgb-gas/v20_q050.d15a/prop',
         'gasprop_cube_suffix' : '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.GasProp.fits',
-        'morph_file' : '/Users/lacerda/CALIFA/morph_eye_class.csv',  
+        'morph_file' : '/Users/lacerda/CALIFA/morph_eye_class.csv',
     }
-    
-    parser = ap.ArgumentParser(description = '%s' % args_str) 
+
+    parser = ap.ArgumentParser(description = '%s' % args_str)
     parser.add_argument('--debug', '-D',
                         action = 'store_true',
                         default = default_args['debug'])
@@ -71,11 +71,13 @@ def parser_args(args_str):
                         metavar = 'FILE',
                         type = str,
                         default = default_args['morph_file'])
-    
+
     args = parser.parse_args()
     args.EL = (args.eml_cube_dir is not None)
     args.GP = (args.gasprop_cube_dir is not None)
-    
+
+    debug_var(True, args_str)
+
     if args.pycasso_cube_dir[-1] != '/':
         args.pycasso_cube_dir += '/'
     if args.EL and (args.eml_cube_dir[-1] != '/'):
@@ -110,38 +112,38 @@ def verify_files(K, califaID, EL = True, GP = True):
         print '<<< %s galaxy: miss gasprop file' % califaID
         return 2, False
     # Problem in FITS file
-    return 0, True       
-    
+    return 0, True
+
 if __name__ == '__main__':
     # Saving the initial time
     t_init_prog = time.clock()
 
-    # Parse arguments 
+    # Parse arguments
     args = parser_args(sys.argv[0])
-    debug_var(True, args = args.__dict__)    
+    debug_var(True, args = args.__dict__)
 
     h5file = tbl.open_file(args.hdf5, mode =  'w', title = 'Test file')
     group = h5file.create_group('/', 'pycasso', 'Galaxy PyCASSO data', filters = tbl.Filters(1))
     tbl_main = h5file.create_table(group, 'main', galaxy, 'Main data')
     tbl_zone = h5file.create_table(group, 'zones', zone, 'Zone data')
     tbl_integrated = h5file.create_table(group, 'integrated', zone, 'Integrated data')
-        
+
     gals, _ = sort_gals(args.gals, order = 1)
     N_gals = len(gals)
     max_gals = N_gals
     if args.debug:
         max_gals = 10
-        
+
     id_zone_ini = id_zone_fin = 0
-    
+
     id_gal = 0
-    
+
     for iGal, gal in enumerate(gals[0:max_gals]):
         t_init_gal = time.clock()
-        
+
         K = load_gal_cubes(args, gal)
         sit, verify = verify_files(K, gal, EL = args.EL, GP = args.GP)
-        
+
         if verify is not True:
             print '<<< ', gal, sit
             if sit == 1:
@@ -150,13 +152,13 @@ if __name__ == '__main__':
                 K.EL.close()
                 K.close()
             continue
-        
+
         pa, ba = K.getEllipseParams()
         K.setGeometry(pa, ba)
-    
+
         id_zone_ini = id_zone_fin
         id_zone_fin = id_zone_ini + K.N_zone
-        
+
         Hb_central_wl = '4861'
         O3_central_wl = '5007'
         Ha_central_wl = '6563'
@@ -167,7 +169,7 @@ if __name__ == '__main__':
         i_N2 = K.EL.lines.index(N2_central_wl)
 
         flag_RGB_OK__z = np.zeros((K.N_zone), dtype = np.bool_)
-        
+
         for l in [Hb_central_wl, O3_central_wl, Ha_central_wl, N2_central_wl]:
             pos = K.GP._dlcons[l]['pos']
             sigma = K.GP._dlcons[l]['sigma']
@@ -177,55 +179,55 @@ if __name__ == '__main__':
             tmp |= K.EL._setMaskLineSigma(l, sigma)
             tmp |= K.EL._setMaskLineSNR(l, snr)
             flag_RGB_OK__z = np.bitwise_or(flag_RGB_OK__z, tmp)
-        
+
         numerator__z = K.Lobn__tZz.sum(axis = 1).sum(axis = 0) * K.at_flux__z
         denominator__z = K.Lobn__tZz.sum(axis = 1).sum(axis = 0)
         at_flux_GAL = numerator__z.sum() / denominator__z.sum()
         AVtoTauV = 1. / (np.log10(np.exp(1)) / 0.4)
         m_type = my_morf(get_morfologia(K.califaID, morph_file = args.morph_file)[0])
-    
+
         # Must follow pos order in galaxy class
         main_data = [(
-            iGal, 
-            K.galaxyName, 
-            K.califaID, 
-            K.N_zone, 
-            K.distance_Mpc, 
-            K.redshift, 
-            m_type, 
-            np.float(K.masterListData['ba']), 
-            ba, 
-            K.parsecPerPixel, 
-            np.float(K.masterListData['Mr']), 
-            np.float(K.masterListData['u-r']), 
-            K.HLR_pix, 
-            K.getHalfRadius(K.McorSD__yx), 
+            iGal,
+            K.galaxyName,
+            K.califaID,
+            K.N_zone,
+            K.distance_Mpc,
+            K.redshift,
+            m_type,
+            np.float(K.masterListData['ba']),
+            ba,
+            K.parsecPerPixel,
+            np.float(K.masterListData['Mr']),
+            np.float(K.masterListData['u-r']),
+            K.HLR_pix,
+            K.getHalfRadius(K.McorSD__yx),
         )]
         tbl_main.append(main_data)
         tbl_main.flush()
-        
+
         # integrated data stored as a zone with id -1
         r = tbl_integrated.row
         r['id_gal'] = iGal
-        r['tau_V']  =  K.integrated_keywords['A_V'] * AVtoTauV 
+        r['tau_V']  =  K.integrated_keywords['A_V'] * AVtoTauV
         r['at_flux'] = at_flux_GAL
-        r['tau_V_neb'] = K.EL.integrated_tau_V_neb 
+        r['tau_V_neb'] = K.EL.integrated_tau_V_neb
         r['etau_V_neb'] = K.EL.integrated_tau_V_neb_err
         r['F_obs_Hb'] = K.EL.integrated_flux[i_Hb]
         r['F_obs_O3'] = K.EL.integrated_flux[i_O3]
-        r['F_obs_Ha'] = K.EL.integrated_flux[i_Ha] 
+        r['F_obs_Ha'] = K.EL.integrated_flux[i_Ha]
         r['F_obs_N2'] = K.EL.integrated_flux[i_N2]
-        r['eF_obs_Hb'] = K.EL.integrated_eflux[i_Hb] 
+        r['eF_obs_Hb'] = K.EL.integrated_eflux[i_Hb]
         r['eF_obs_O3'] = K.EL.integrated_eflux[i_O3]
-        r['eF_obs_Ha'] = K.EL.integrated_eflux[i_Ha] 
+        r['eF_obs_Ha'] = K.EL.integrated_eflux[i_Ha]
         r['eF_obs_N2'] = K.EL.integrated_eflux[i_N2]
-        r['baseline_Hb'] = K.EL.integrated_baseline[i_Hb] 
+        r['baseline_Hb'] = K.EL.integrated_baseline[i_Hb]
         r['baseline_O3'] = K.EL.integrated_baseline[i_O3]
-        r['baseline_Ha'] = K.EL.integrated_baseline[i_Ha] 
+        r['baseline_Ha'] = K.EL.integrated_baseline[i_Ha]
         r['baseline_N2'] = K.EL.integrated_baseline[i_N2]
-        r['EW_Hb'] = K.EL.integrated_EW[i_Hb] 
+        r['EW_Hb'] = K.EL.integrated_EW[i_Hb]
         r['EW_O3'] = K.EL.integrated_EW[i_O3]
-        r['EW_Ha'] = K.EL.integrated_EW[i_Ha] 
+        r['EW_Ha'] = K.EL.integrated_EW[i_Ha]
         r['EW_N2'] = K.EL.integrated_EW[i_N2]
         r['sigma_Hb'] = K.EL.integrated_sigma[i_Hb]
         r['sigma_O3'] = K.EL.integrated_sigma[i_O3]
@@ -246,7 +248,7 @@ if __name__ == '__main__':
         r.append()
         tbl_integrated.flush()
         del r
-        
+
         # zip to transpose arrays to col_arrays
         zone_data = zip(
             np.zeros((K.N_zone), dtype = int) + id_gal,
@@ -263,22 +265,22 @@ if __name__ == '__main__':
             # Neb
             K.EL.tau_V_neb__z,
             K.EL.tau_V_neb_err__z,
-            K.EL.flux[i_Hb], 
-            K.EL.flux[i_O3], 
-            K.EL.flux[i_Ha], 
-            K.EL.flux[i_N2], 
-            K.EL.eflux[i_Hb], 
-            K.EL.eflux[i_O3], 
-            K.EL.eflux[i_Ha], 
-            K.EL.eflux[i_N2], 
-            K.EL.baseline[i_Hb], 
-            K.EL.baseline[i_O3], 
-            K.EL.baseline[i_Ha], 
-            K.EL.baseline[i_N2], 
-            K.EL.EW[i_Hb], 
-            K.EL.EW[i_O3], 
-            K.EL.EW[i_Ha], 
-            K.EL.EW[i_N2], 
+            K.EL.flux[i_Hb],
+            K.EL.flux[i_O3],
+            K.EL.flux[i_Ha],
+            K.EL.flux[i_N2],
+            K.EL.eflux[i_Hb],
+            K.EL.eflux[i_O3],
+            K.EL.eflux[i_Ha],
+            K.EL.eflux[i_N2],
+            K.EL.baseline[i_Hb],
+            K.EL.baseline[i_O3],
+            K.EL.baseline[i_Ha],
+            K.EL.baseline[i_N2],
+            K.EL.EW[i_Hb],
+            K.EL.EW[i_O3],
+            K.EL.EW[i_Ha],
+            K.EL.EW[i_N2],
             K.EL.sigma[i_Hb],
             K.EL.sigma[i_O3],
             K.EL.sigma[i_Ha],
@@ -307,9 +309,9 @@ if __name__ == '__main__':
         K.close()
         del K
         print 'time per galaxy: %s %.2f' % (gal, time.clock() - t_init_gal)
-        
+
         id_gal += 1
-        
+
     tbl_main.cols.id.create_csindex()
     tbl_main.cols.califaID.create_csindex()
     tbl_main.cols.m_type.create_csindex()
@@ -324,4 +326,4 @@ if __name__ == '__main__':
     tbl_integrated.flush()
 
     h5file.close()
-    print 'total time: %.2f' % (time.clock() - t_init_prog)    
+    print 'total time: %.2f' % (time.clock() - t_init_prog)
