@@ -116,8 +116,17 @@ if __name__ == '__main__':
     tbl_gals = h5file.root.pycasso.main
     tbl_zones = h5file.root.pycasso.zones
     tbl_integrated = h5file.root.pycasso.integrated
-    
     node_SFR = h5file.get_node(args.SFRgroup)
+    tbl_SFR_zones_neb = node_SFR.zones_neb
+    tbl_SFR_zones_SF = node_SFR.zones_SF
+    tbl_SFR_integrated_neb = node_SFR.integrated_neb
+    tbl_SFR_integrated_SF = node_SFR.integrated_SF
+
+    h5file = tbl.open_file(h5fname, mode = 'r+')
+    tbl_gals = h5file.root.pycasso.main
+    tbl_zones = h5file.root.pycasso.zones
+    tbl_integrated = h5file.root.pycasso.integrated
+    node_SFR = h5file.get_node(SFRgroup)
     tbl_SFR_zones_neb = node_SFR.zones_neb
     tbl_SFR_zones_SF = node_SFR.zones_SF
     tbl_SFR_integrated_neb = node_SFR.integrated_neb
@@ -134,8 +143,6 @@ if __name__ == '__main__':
             g_integrated_props_SF = tbl_SFR_integrated_SF.read_where('(id_gal == gid) & (id_tSF == iT)', {'gid' : iGal, 'iT' : iT})
             g_integrated_props_neb = tbl_SFR_integrated_neb.read_where('(id_gal == gid) & (id_tSF == iT)', {'gid' : iGal, 'iT' : iT})
             
-            
-                        
             ##########################################
             if (mask_radial.astype(int).sum() < (K.N_zone - minzones)):
                 C.debug_var(args.debug, 
