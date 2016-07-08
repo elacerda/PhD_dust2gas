@@ -7,7 +7,7 @@ from CALIFAUtils.scripts import debug_var
 from CALIFAUtils.objects import GasProp
 from tables_description import zone_Z
 from pycasso import fitsQ3DataCube
-from tables_description import tZ 
+from tables_description import tblZ
 import argparse as ap
 import tables as tbl
 import numpy as np
@@ -28,7 +28,7 @@ def calc_agebins(ages, age = None):
     age_index = -1
     if age is not None:
         age_index = np.where(aLow__t < age)[0][-1]
-    return aCen__t, aLow__t, aUpp__t, age_index 
+    return aCen__t, aLow__t, aUpp__t, age_index
 
 def calc_xY(K, tY):
     _, aLow__t, aUpp__t, indY = calc_agebins(K.ageBase, tY)
@@ -63,11 +63,11 @@ def calc_alogZ_Stuff(K, tZ, xOkMin):
     but this did not work!
 
     Cid@Lagoa - 20/Jun/2014
-    
+
     Correct nan problems using:
     alogZ_mass__z[np.isnan(alogZ_mass__z)] = np.ma.masked
     Lacerda@Granada - 19/Feb/2015
-    
+
     removed radial profiles inside this func.
     Lacerda@Granada - 23/Feb/2015
     '''
@@ -98,10 +98,10 @@ def calc_alogZ_Stuff(K, tZ, xOkMin):
     # Def galaxy-wide averages of alogZ in light & mass, but **discards** zones having
     # too little light fractions in the ages given by flag__t
     isOk__z = np.ones_like(K.Mcor__z, dtype = np.bool)
-    
+
     # Define Ok flag: Zones with light fraction x < xOkMin are not reliable for alogZ (& etc) estimation!
     x_Y__z, int_x_Y__z = calc_xY(K, tZ)
-    
+
     if xOkMin >= 0.:
         #EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
         # x__tZz = K.popx / K.popx.sum(axis = 1).sum(axis = 0)
@@ -109,7 +109,7 @@ def calc_alogZ_Stuff(K, tZ, xOkMin):
         #EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
         isOk__z = (x_Y__z >= xOkMin)
         isOk_int = (int_x_Y__z >= xOkMin)
-        
+
     # Fraction of all zones which are Ok in the isOk__z sense. Useful to censor galaxies whose
     # galaxy-wide averages are based on too few zones (hence not representative)
     # OBS: isOkFrac_GAL is not used in this function, but it's returned to be used by the caller
@@ -130,17 +130,17 @@ def parser_args(args_str):
     default_args = {
         'debug' : False,
         'hdf5' : 'output.h5',
-        'gals' : '/Users/lacerda/CALIFA/listv20_q050.d15a.txt',
-        'pycasso_cube_dir' : '/Users/lacerda/CALIFA/gal_fits/v20_q050.d15a',
+        'gals' : '/data/CALIFA/listv20_q050.d15a.txt',
+        'pycasso_cube_dir' : '/data/CALIFA/legacy/v20_q050.d15a',
         'pycasso_cube_suffix' : '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.fits',
-        'eml_cube_dir' : '/Users/lacerda/CALIFA/rgb-gas/v20_q050.d15a',
-        'eml_cube_suffix' : '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.fits', 
-        'gasprop_cube_dir' : '/Users/lacerda/CALIFA/rgb-gas/v20_q050.d15a/prop',
+        'eml_cube_dir' : '/data/CALIFA/legacy/rgb-gas/v20_q050.d15a',
+        'eml_cube_suffix' : '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.fits',
+        'gasprop_cube_dir' : '/home/lacerda/CALIFA/rgb-gas/v20_q050.d15a/prop',
         'gasprop_cube_suffix' : '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.GasProp.fits',
         'group' : 'young',
-        'group_SF' : 'SFR05050525/' 
+        'group_SF' : 'SFR05050525/'
     }
-    
+
     parser = ap.ArgumentParser(description = '%s' % args_str)
     parser.add_argument('--debug', '-D',
                         action = 'store_true',
@@ -185,11 +185,11 @@ def parser_args(args_str):
                         metavar = 'GROUPNAME',
                         type = str,
                         default = default_args['group_SF'])
-    
+
     args = parser.parse_args()
     args.EL = (args.eml_cube_dir is not None)
     args.GP = (args.gasprop_cube_dir is not None)
-    
+
     if args.pycasso_cube_dir[-1] != '/':
         args.pycasso_cube_dir += '/'
     if args.EL and (args.eml_cube_dir[-1] != '/'):
@@ -211,43 +211,42 @@ def load_gal_cubes(args, califaID):
         gasprop_cube_file = args.gasprop_cube_dir + califaID + args.gasprop_cube_suffix
         K.GP = GasProp(gasprop_cube_file)
     return K
-    
+
 if __name__ == '__main__':
     # Saving the initial time
     t_init_prog = time.clock()
+    lines_bpt = [4861, 5007, 6563, 6583]
 
-    # Parse arguments 
+    # Parse arguments
     args = parser_args(sys.argv[0])
-    debug_var(True, args = args.__dict__)    
+    debug_var(True, args = args.__dict__)
 
     tZ__U = np.array([1.0 , 2.0 , 5.0 , 8.0 , 11.3 , 14.2]) * 1.e9
     N_U = len(tZ__U)
-    
-    q = redenninglaws.Cardelli_RedLaw([4861, 5007, 6563, 6583])
-    
+
+    q = redenninglaws.Cardelli_RedLaw(lines_bpt)
+
     h5file = tbl.open_file(args.hdf5, mode = 'r+')
     tbl_gals = h5file.root.pycasso.main
     tbl_zones = h5file.root.pycasso.zones
     tbl_integrated = h5file.root.pycasso.integrated
-    
-    minpopx = np.float(h5file.get_node(args.group_SF)._g_gettitle().split('/')[0].split(':')[-1])    
-    
+
+    minpopx = np.float(h5file.get_node(args.group_SF)._g_gettitle().split('/')[0].split(':')[-1])
+
     group_description = 'minpopx:%.2f - zones calculation' % minpopx
-    group = h5file.create_group('/', args.group, group_description, 
+    group = h5file.create_group('/', args.group, group_description,
                                 filters = tbl.Filters(1))
-    tbl_tZ = h5file.create_table(group, 'tSF', tZ, 'tZ data')
+    tbl_tZ = h5file.create_table(group, 'tSF', tblZ, 'tZ data')
     tbl_zone_Z = h5file.create_table(group, 'zones_Z', zone_Z, 'Z data')
     tbl_integrated_Z = h5file.create_table(group, 'integrated_Z', zone_Z, 'Z data')
-    
+
     tbl_tZ.append([t for t in enumerate(tZ__U)])
     tbl_tZ.cols.id.create_csindex()
     tbl_tZ.flush()
-    
-    iT = 1
-    
+
     for g in tbl_gals:
         t_init_gal = time.clock()
-        
+
         K = load_gal_cubes(args, g['califaID'])
         pa, ba = K.getEllipseParams()
         K.setGeometry(pa, ba)
@@ -256,21 +255,21 @@ if __name__ == '__main__':
         g_int_props = tbl_integrated.read_where('id_gal == gid', {'gid' : g['id']})
         id_zones = g_props['id']
         _izS = np.argsort(g_props['id']) # zone index sorted by id
-        
+
         ################### SYN ###################
         ################### SYN ###################
         ################### SYN ###################
-        for iU, tZ in enumerate(tZ__U): 
+        for iU, tZ in enumerate(tZ__U):
             alogZ_mass__z, alogZ_flux__z, alogZ_mass_GAL, alogZ_flux_GAL, \
             flagOk_xY, integrated_flagOk_xY, isOkFrac_GAL = calc_alogZ_Stuff(K, tZ, minpopx)
-            
+
             flag_xY = ~(flagOk_xY)
-            
+
             tmp = np.zeros((g['N_zone']), dtype = np.int)
             id_tZ = tmp + iU
             id_gal = tmp + g['id']
             zone_Z_data = zip(
-                id_gal, 
+                id_gal,
                 id_zones,
                 np.arange(g['N_zone']),
                 id_tZ,
@@ -282,19 +281,19 @@ if __name__ == '__main__':
             tbl_zone_Z.flush()
             del tmp
 
-            integrated_flag_xY = ~(integrated_flagOk_xY) 
+            integrated_flag_xY = ~(integrated_flagOk_xY)
             integrated_Z_data = [(
-                g['id'], 
+                g['id'],
                 -1,
                 -1,
-                iU, 
+                iU,
                 alogZ_flux_GAL,
                 alogZ_mass_GAL,
                 integrated_flag_xY
             )]
             tbl_integrated_Z.append(integrated_Z_data)
             tbl_integrated_Z.flush()
-        
+
         K.GP.close()
         K.EL.close()
         K.close()
@@ -310,9 +309,9 @@ if __name__ == '__main__':
     tbl_integrated_Z.cols.id_gal.create_csindex()
     tbl_integrated_Z.cols.id_tZ.create_csindex()
     tbl_integrated_Z.cols.flag_xY.create_index()
-    
+
     tbl_zone_Z.flush()
     tbl_integrated_Z.flush()
 
     h5file.close()
-    print 'total time: %.2f' % (time.clock() - t_init_prog)    
+    print 'total time: %.2f' % (time.clock() - t_init_prog)
