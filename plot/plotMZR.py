@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
 #
 # Lacerda@Corrego - 24/Mar/2016
 #
@@ -16,7 +16,7 @@ mpl.rcParams['font.size'] = 20
 mpl.rcParams['axes.labelsize'] = 20
 mpl.rcParams['axes.titlesize'] = 20
 mpl.rcParams['xtick.labelsize'] = 20
-mpl.rcParams['ytick.labelsize'] = 20 
+mpl.rcParams['ytick.labelsize'] = 20
 mpl.rcParams['font.family'] = 'serif'
 mpl.rcParams['font.serif'] = 'Times New Roman'
 
@@ -26,7 +26,7 @@ def plotmuZR(ax, mu, Z, z = None, cmap = 'viridis', mask = None, labels = True, 
     plt.axis(extent)
     bins = [30, 30]
     if z is None:
-        xm, ym = ma_mask_xyz(np.ma.log10(mu), Z, mask = mask) 
+        xm, ym = ma_mask_xyz(np.ma.log10(mu), Z, mask = mask)
         density_contour(xm.compressed(), ym.compressed(), bins[0], bins[1], ax, range = [extent[0:2], extent[2:4]], colors = [ 'b', 'y', 'r' ])
         sc = ax.scatter(xm, ym, marker = 'o', c = '0.5', s = 10, edgecolor = 'none', alpha = 0.3)
     else:
@@ -59,7 +59,7 @@ tbl_zones_SF = node_SFR.zones_SF.read_where('id_tSF == 1')
 tbl_integrated_neb = node_SFR.integrated_neb
 tbl_integrated_SF = node_SFR.integrated_SF.read_where('id_tSF == 1')
 node_Zstar = h5file.get_node(Zgroup)
-tbl_zones_Z = node_Zstar.zones_Z.read_where('id_tZ == 5') 
+tbl_zones_Z = node_Zstar.zones_Z.read_where('id_tZ == 5')
 
 Hb_obs__g = tbl_zones.cols.F_obs_Hb[:]
 O3_obs__g = tbl_zones.cols.F_obs_O3[:]
@@ -96,14 +96,14 @@ ax.yaxis.set_major_locator(MaxNLocator(4))
 plt.setp(ax.get_xticklabels(), visible = False)
 
 ax = plt.subplot2grid(grid_shape, (0, 1))
-mask = (flag_residual > 0) 
+mask = (flag_residual > 0)
 ax = plotmuZR(ax, mu, aZ_mass, mask = mask, labels = False)
 plt.setp(ax.get_xticklabels(), visible = False)
 plt.setp(ax.get_yticklabels(), visible = False)
 
 ax = plt.subplot2grid(grid_shape, (0, 2))
-mask |= (flag_BPT > 0) 
-mask |= (flag_RGB > 0) 
+mask |= (flag_BPT > 0)
+mask |= (flag_RGB > 0)
 mask = mask | (SNHb < 3) | (SNO3 < 3) | (SNHa < 3) | (SNN2 < 3)
 mask = mask | np.isnan(SNHb) | np.isnan(SNO3) | np.isnan(SNHa) | np.isnan(SNN2)
 ax = plotmuZR(ax, mu, aZ_mass, mask = mask, labels = False)

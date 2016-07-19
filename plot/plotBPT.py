@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
 #
 # Lacerda@Corrego - 24/Mar/2016
 #
@@ -15,7 +15,7 @@ mpl.rcParams['font.size'] = 20
 mpl.rcParams['axes.labelsize'] = 20
 mpl.rcParams['axes.titlesize'] = 20
 mpl.rcParams['xtick.labelsize'] = 20
-mpl.rcParams['ytick.labelsize'] = 20 
+mpl.rcParams['ytick.labelsize'] = 20
 mpl.rcParams['font.family'] = 'serif'
 mpl.rcParams['font.serif'] = 'Times New Roman'
 
@@ -101,14 +101,14 @@ ax.yaxis.set_major_locator(MaxNLocator(4))
 plt.setp(ax.get_xticklabels(), visible = False)
 
 ax = plt.subplot2grid(grid_shape, (0, 1))
-mask = (flag_residual > 0) 
+mask = (flag_residual > 0)
 ax = plotBPT(ax, N2Ha__g, O3Hb__g, mask = mask, labels = False)
 plt.setp(ax.get_xticklabels(), visible = False)
 plt.setp(ax.get_yticklabels(), visible = False)
 
 ax = plt.subplot2grid(grid_shape, (0, 2))
-mask |= (flag_BPT > 0) 
-mask |= (flag_RGB > 0) 
+mask |= (flag_BPT > 0)
+mask |= (flag_RGB > 0)
 mask = mask | (SNHb < 3) | (SNO3 < 3) | (SNHa < 3) | (SNN2 < 3)
 mask = mask | np.isnan(SNHb) | np.isnan(SNO3) | np.isnan(SNHa) | np.isnan(SNN2)
 mask = mask | np.isinf(SNHb) | np.isinf(SNO3) | np.isinf(SNHa) | np.isinf(SNN2)
