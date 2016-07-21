@@ -33,6 +33,8 @@ def parser_args(args_str):
         'morph_file': '/Users/lacerda/CALIFA/morph_eye_class.csv',
     }
 
+    parser = ap.ArgumentParser(description = '%s' % args_str,
+                               fromfile_prefix_chars='@')
     parser.add_argument('--debug', '-D',
                         action = 'store_true',
                         default = default_args['debug'])

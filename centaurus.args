@@ -1,0 +1,9 @@
+--gals=/data/lacerda/backup_mac/lacerda/CALIFA/listv20_q050.d15a.txt
+--pycasso_cube_dir=/data/lacerda/backup_mac/lacerda/CALIFA/gal_fits/v20_q050.d15a/
+--pycasso_cube_suffix=_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.fits
+--eml_cube_dir=/data/lacerda/backup_mac/lacerda/CALIFA/rgb-gas/v20_q050.d15a/
+--eml_cube_suffix=_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.fits
+--gasprop_cube_dir=/data/lacerda/backup_mac/lacerda/CALIFA/rgb-gas/v20_q050.d15a/prop/
+--gasprop_cube_suffix=_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.GasProp.fits
+--hdf5=SFR_rawdata.h5
+--morph_file=/data/lacerda/backup_mac/lacerda/CALIFA/morph_eye_class.csv
