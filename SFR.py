@@ -23,7 +23,6 @@ def parser_args(default_args_file='default.args'):
         'debug': False,
         'group': 'young',
         'hdf5': 'output.h5',
-        'gals': 'listv20_q050.d15a.txt',
         'minpopx': np.finfo(np.float_).min,
         'mintauv': np.finfo(np.float_).min,
         'mintauvneb': np.finfo(np.float_).min,
@@ -35,8 +34,6 @@ def parser_args(default_args_file='default.args'):
                         default=default_args['debug'])
     parser.add_argument('--hdf5', '-H', metavar='FILE', type=str,
                         default=default_args['hdf5'])
-    parser.add_argument('--gals', '-G', metavar='FILE', type=str,
-                        default=default_args['gals'])
     parser.add_argument('--pycasso_cube_dir', metavar='DIR', type=str,
                         required=True)
     parser.add_argument('--eml_cube_dir', metavar='DIR', type=str,
