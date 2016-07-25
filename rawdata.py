@@ -4,9 +4,9 @@
 import os
 import sys
 import time
-import numpy as np
-import tables as tbl
 import argparse as ap
+import tables as tbl
+import numpy as np
 from pycasso import fitsQ3DataCube
 from tables_description import zone
 from tables_description import galaxy
@@ -17,12 +17,12 @@ from CALIFAUtils.scripts import sort_gals
 from CALIFAUtils.scripts import get_morfologia
 
 
-def parser_args():
+def parser_args(default_args_file='default.args'):
     '''
         Parse the command line args
         With fromfile_prefix_chars=@ we can read and parse command line args
         inside a file with @file.txt.
-        default args inside defaults.args
+        default args inside default_args_file
     '''
     default_args = {
         'debug': False,
@@ -30,8 +30,7 @@ def parser_args():
         'gals': 'listv20_q050.d15a.txt',
     }
 
-    parser = ap.ArgumentParser(description='%s' % sys.argv[0],
-                               fromfile_prefix_chars='@')
+    parser = ap.ArgumentParser(fromfile_prefix_chars='@')
     parser.add_argument('--debug', '-D', action='store_true',
                         default=default_args['debug'])
     parser.add_argument('--hdf5', '-H', metavar='FILE', type=str,
@@ -53,13 +52,14 @@ def parser_args():
     parser.add_argument('--morph_file', '-M', metavar='FILE', type=str)
 
     args_list = sys.argv[1:]
-    # if exists file default.args, load default args.
-    if os.path.isfile('default.args'):
-        args_list.insert(0, '@default.args')
+    # if exists file default.args, load default args
+    if os.path.isfile(default_args_file):
+        args_list.insert(0, '@%s' % default_args_file)
     debug_var(True, args_list=args_list)
-    return fix_args(parser.parse_args(args=args_list))
+    return fix_dir_args(parser.parse_args(args=args_list))
 
-def fix_args(args):
+
+def fix_dir_args(args):
     args.EL = (args.eml_cube_dir is not None)
     args.GP = (args.gasprop_cube_dir is not None)
 
@@ -72,7 +72,11 @@ def fix_args(args):
 
     return args
 
-def load_gal_cubes(args, califaID):
+
+def load_gal_cubes(args, califaID,
+                   pycasso_cube_file=None,
+                   eml_cube_file=None,
+                   gasprop_cube_file=None):
     '''
         Open PyCASSO SUPERFITS (K), EmissionLines FITS (K.EL) and
         GasProp FITS (K.GP)
@@ -80,20 +84,25 @@ def load_gal_cubes(args, califaID):
         The directories and suffixes are in:
         args.[pycasso_cube_[dir,suffix],
               eml_cube_[dir,suffix],
-              gasprop_cube_[dir,suffix]
-             ]
+              gasprop_cube_[dir,suffix]]
     '''
-
-    pycasso_cube_file = args.pycasso_cube_dir + califaID + args.pycasso_cube_suffix
-    K = fitsQ3DataCube(pycasso_cube_file)
+    if pycasso_cube_file is None:
+        pycasso_cube_file = califaID + args.pycasso_cube_suffix
+    K_cube = fitsQ3DataCube(args.pycasso_cube_dir + pycasso_cube_file)
+    filenames = [pycasso_cube_file, '', '']
     if args.EL:
-        eml_cube_file = args.eml_cube_dir + califaID + args.eml_cube_suffix
-        K.loadEmLinesDataCube(eml_cube_file)
+        if eml_cube_file is None:
+            eml_cube_file = califaID + args.eml_cube_suffix
+        K_cube.loadEmLinesDataCube(args.eml_cube_dir + eml_cube_file)
+        filenames.insert(1, eml_cube_file)
     if args.GP:
-        gasprop_cube_file = args.gasprop_cube_dir + califaID + args.gasprop_cube_suffix
         # GasProp in CALIFAUtils.objects
-        K.GP = GasProp(gasprop_cube_file)
-    return K
+        if gasprop_cube_file is None:
+            gasprop_cube_file = califaID + args.gasprop_cube_suffix
+        K_cube.GP = GasProp(args.gasprop_cube_dir + gasprop_cube_file)
+        filenames.insert(2, gasprop_cube_file)
+    return K_cube, filenames
+
 
 def verify_files(K, califaID, EL=True, GP=True):
     if K is None:
@@ -112,22 +121,25 @@ def verify_files(K, califaID, EL=True, GP=True):
     # Problem in FITS file
     return 0, True
 
+
 if __name__ == '__main__':
     # Saving the initial time
     t_init_prog = time.clock()
 
     # Parse args
-    args = parser_args()
+    args = parser_args(default_args_file='rawdata_default.args')
     debug_var(True, args=args.__dict__)
 
     # open h5file
     h5file = tbl.open_file(args.hdf5, mode='w', title='SFR data')
 
     # create h5 groups and tables within
-    group = h5file.create_group('/', 'pycasso', 'Galaxy PyCASSO data', filters=tbl.Filters(1))
+    group = h5file.create_group('/', 'pycasso', 'Galaxy PyCASSO data',
+                                filters=tbl.Filters(1))
     tbl_main = h5file.create_table(group, 'main', galaxy, 'Main data')
     tbl_zone = h5file.create_table(group, 'zones', zone, 'Zone data')
-    tbl_integrated = h5file.create_table(group, 'integrated', zone, 'Integrated data')
+    tbl_integrated = h5file.create_table(group, 'integrated', zone,
+                                         'Integrated data')
 
     # read gals from args.gals file
     gals, _ = sort_gals(args.gals, order=1)
@@ -144,7 +156,7 @@ if __name__ == '__main__':
         t_init_gal = time.clock()
 
         # load PyCASSO Superfits, EMLines and GasProps
-        K = load_gal_cubes(args, gal)
+        K, cube_filenames = load_gal_cubes(args, gal)
         sit, verify = verify_files(K, gal, EL=args.EL, GP=args.GP)
 
         # set files situation
@@ -201,12 +213,13 @@ if __name__ == '__main__':
         '''
             morphological type:
             'S0' : -1, 'S0a' : -1
-            'Sa' : 0, 'Sab' : 1, 'Sb' : 2, 'Sbc' : 3, 'Sc' : 4, 'Scd' : 5, 'Sd' : 6,
-            'Sdm' : 7, 'Sm' : 7, 'Ir' : 7,
+            'Sa' : 0, 'Sab' : 1, 'Sb' : 2, 'Sbc' : 3, 'Sc' : 4,
+            'Scd' : 5, 'Sd' : 6, 'Sdm' : 7, 'Sm' : 7, 'Ir' : 7,
             'E0' : -2, 'E1' : -2, 'E2' : -2, 'E3' : -2, 'E4' : -2, 'E5' : -2,
             'E6' : -2, 'E7' : -2,
         '''
-        m_type = my_morf(get_morfologia(K.califaID, morph_file=args.morph_file)[0])
+        m_type = my_morf(get_morfologia(K.califaID,
+                         morph_file=args.morph_file)[0])
 
         # Prepare galaxy main data to fill main table
         # the galaxy ID will be iGal, so, gaps between ids could exists
@@ -225,6 +238,9 @@ if __name__ == '__main__':
             np.float(K.masterListData['u-r']),
             K.HLR_pix,
             K.getHalfRadius(K.McorSD__yx),
+            cube_filenames[0],
+            cube_filenames[1],
+            cube_filenames[2],
         )]
 
         # append data to main table
@@ -235,7 +251,7 @@ if __name__ == '__main__':
         # integrated data stored as a zone with id -1
         row_zone = tbl_integrated.row
         row_zone['id_gal'] = iGal
-        row_zone['tau_V']  =  K.integrated_keywords['A_V'] * AVtoTauV
+        row_zone['tau_V'] = K.integrated_keywords['A_V']*AVtoTauV
         row_zone['at_flux'] = at_flux_GAL
         row_zone['tau_V_neb'] = K.EL.integrated_tau_V_neb
         row_zone['etau_V_neb'] = K.EL.integrated_tau_V_neb_err
@@ -268,7 +284,7 @@ if __name__ == '__main__':
         row_zone['pos_Ha'] = K.EL.integrated_pos[i_Ha]
         row_zone['pos_N2'] = K.EL.integrated_pos[i_N2]
         row_zone['epos_Hb'] = K.EL.integrated_epos[i_Hb]
-        row_zone['epos_O3'] =  K.EL.integrated_epos[i_O3]
+        row_zone['epos_O3'] = K.EL.integrated_epos[i_O3]
         row_zone['epos_Ha'] = K.EL.integrated_epos[i_Ha]
         row_zone['epos_N2'] = K.EL.integrated_epos[i_N2]
         # append integrated data

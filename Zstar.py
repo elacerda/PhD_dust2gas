@@ -1,4 +1,3 @@
-#!/usr/bin/python
 #
 # Lacerda@Saco - 25/Mar/2016
 #

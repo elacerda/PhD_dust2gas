@@ -1,5 +1,3 @@
---debug
---hdf5=output.h5
 --gals=/Users/lacerda/CALIFA/listv20_q050.d15a.txt
 --pycasso_cube_dir=/Users/lacerda/CALIFA/gal_fits/v20_q050.d15a
 --pycasso_cube_suffix=_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.fits

@@ -1,0 +1,4 @@
+--debug
+--hdf5=output.h5
+--group=SFR
+@default_paths.args

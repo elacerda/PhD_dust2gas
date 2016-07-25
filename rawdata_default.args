@@ -1,0 +1,3 @@
+--debug
+--hdf5=output.h5
+@default_paths.args
