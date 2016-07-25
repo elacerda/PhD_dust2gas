@@ -17,6 +17,18 @@ from CALIFAUtils.scripts import sort_gals
 from CALIFAUtils.scripts import get_morfologia
 
 
+class CustomArgumentParser(ap.ArgumentParser):
+    def __init__(self, *args, **kwargs):
+        super(CustomArgumentParser, self).__init__(*args, **kwargs)
+
+    def convert_arg_line_to_args(self, line):
+        for arg in line.split():
+            if not arg.strip():
+                continue
+            if arg[0] == '#':
+                break
+            yield arg
+
 def parser_args(default_args_file='default.args'):
     '''
         Parse the command line args
@@ -30,7 +42,7 @@ def parser_args(default_args_file='default.args'):
         'gals': 'listv20_q050.d15a.txt',
     }
 
-    parser = ap.ArgumentParser(fromfile_prefix_chars='@')
+    parser = CustomArgumentParser(fromfile_prefix_chars='@')
     parser.add_argument('--debug', '-D', action='store_true',
                         default=default_args['debug'])
     parser.add_argument('--hdf5', '-H', metavar='FILE', type=str,
