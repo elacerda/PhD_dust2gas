@@ -1,114 +1,94 @@
 #
 # Lacerda@Saco - 15/Mar/2016
 #
-from CALIFAUtils.scripts import get_morfologia
-from CALIFAUtils.scripts import sort_gals
-from CALIFAUtils.scripts import debug_var
-from CALIFAUtils.objects import GasProp
-from CALIFAUtils.scripts import my_morf
-from tables_description import galaxy
-from tables_description import zone
-from pycasso import fitsQ3DataCube
-import argparse as ap
-import tables as tbl
-import numpy as np
-import time
+import os
 import sys
+import time
+import numpy as np
+import tables as tbl
+import argparse as ap
+from pycasso import fitsQ3DataCube
+from tables_description import zone
+from tables_description import galaxy
+from CALIFAUtils.scripts import my_morf
+from CALIFAUtils.objects import GasProp
+from CALIFAUtils.scripts import debug_var
+from CALIFAUtils.scripts import sort_gals
+from CALIFAUtils.scripts import get_morfologia
 
 
-def parser_args(args_str):
+def parser_args():
     '''
-    Parse the command line arguments
+        Parse the command line arguments
+        With fromfile_prefix_chars=@ we can read and parse command line arguments
+        inside a file with @file.txt.
+        default arguments inside defaults.args
     '''
     default_args = {
         'debug': False,
         'hdf5': 'output.h5',
-        'gals': '/Users/lacerda/CALIFA/listv20_q050.d15a.txt',
-        'pycasso_cube_dir': '/Users/lacerda/CALIFA/gal_fits/v20_q050.d15a',
-        'pycasso_cube_suffix': '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.fits',
-        'eml_cube_dir': '/Users/lacerda/CALIFA/rgb-gas/v20_q050.d15a',
-        'eml_cube_suffix': '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.fits',
-        'gasprop_cube_dir': '/Users/lacerda/CALIFA/rgb-gas/v20_q050.d15a/prop',
-        'gasprop_cube_suffix': '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.GasProp.fits',
-        'morph_file': '/Users/lacerda/CALIFA/morph_eye_class.csv',
+        'gals': 'listv20_q050.d15a.txt',
     }
 
-    parser = ap.ArgumentParser(description = '%s' % args_str,
+    parser = ap.ArgumentParser(description='%s' % sys.argv[0],
                                fromfile_prefix_chars='@')
-    parser.add_argument('--debug', '-D',
-                        action = 'store_true',
-                        default = default_args['debug'])
-    parser.add_argument('--hdf5', '-H',
-                        metavar = 'FILE',
-                        type = str,
-                        default = default_args['hdf5'])
-    parser.add_argument('--gals', '-G',
-                        metavar = 'FILE',
-                        type = str,
-                        default = default_args['gals'])
-    parser.add_argument('--pycasso_cube_dir',
-                        metavar = 'DIR',
-                        type = str,
-                        default = default_args['pycasso_cube_dir'])
-    parser.add_argument('--pycasso_cube_suffix',
-                        metavar = 'SUFFIX',
-                        type = str,
-                        default = default_args['pycasso_cube_suffix'])
-    parser.add_argument('--eml_cube_dir',
-                        metavar = 'DIR',
-                        type = str,
-                        default = default_args['eml_cube_dir'])
-    parser.add_argument('--eml_cube_suffix',
-                        metavar = 'SUFFIX',
-                        type = str,
-                        default = default_args['eml_cube_suffix'])
-    parser.add_argument('--gasprop_cube_dir',
-                        metavar = 'DIR',
-                        type = str,
-                        default = default_args['gasprop_cube_dir'])
-    parser.add_argument('--gasprop_cube_suffix',
-                        metavar = 'SUFFIX',
-                        type = str,
-                        default = default_args['gasprop_cube_suffix'])
-    parser.add_argument('--morph_file', '-M',
-                        metavar = 'FILE',
-                        type = str,
-                        default = default_args['morph_file'])
+    parser.add_argument('--debug', '-D', action='store_true',
+                        default=default_args['debug'])
+    parser.add_argument('--hdf5', '-H', metavar='FILE', type=str,
+                        default=default_args['hdf5'])
+    parser.add_argument('--gals', '-G', metavar='FILE', type=str,
+                        default=default_args['gals'])
+    parser.add_argument('--pycasso_cube_dir', metavar='DIR', type=str,
+                        required=True)
+    parser.add_argument('--pycasso_cube_suffix', metavar='SUFFIX', type=str,
+                        required=True)
+    parser.add_argument('--eml_cube_dir', metavar='DIR', type=str,
+                        required=True)
+    parser.add_argument('--eml_cube_suffix', metavar='SUFFIX', type=str,
+                        required=True)
+    parser.add_argument('--gasprop_cube_dir', metavar='DIR', type=str,
+                        required=True)
+    parser.add_argument('--gasprop_cube_suffix', metavar='SUFFIX', type=str,
+                        required=True)
+    parser.add_argument('--morph_file', '-M', metavar='FILE', type=str)
 
-    args = parser.parse_args()
-    args.EL = (args.eml_cube_dir is not None)
-    args.GP = (args.gasprop_cube_dir is not None)
+    args_list = sys.argv[1:]
+    # if exists file default.args, load default arguments.
+    if os.path.isfile('default.args'):
+        args_list.insert(0, '@default.args')
+    debug_var(True, args_list=args_list)
+    arguments = parser.parse_args(args=args_list)
+    arguments.EL = (arguments.eml_cube_dir is not None)
+    arguments.GP = (arguments.gasprop_cube_dir is not None)
 
-    debug_var(True, args_str = args_str)
+    if arguments.pycasso_cube_dir[-1] != '/':
+        arguments.pycasso_cube_dir += '/'
+    if arguments.EL and (arguments.eml_cube_dir[-1] != '/'):
+        arguments.eml_cube_dir += '/'
+    if arguments.GP and (arguments.gasprop_cube_dir[-1] != '/'):
+        arguments.gasprop_cube_dir += '/'
 
-    if args.pycasso_cube_dir[-1] != '/':
-        args.pycasso_cube_dir += '/'
-    if args.EL and (args.eml_cube_dir[-1] != '/'):
-        args.eml_cube_dir += '/'
-    if args.GP and (args.gasprop_cube_dir[-1] != '/'):
-        args.gasprop_cube_dir += '/'
+    return arguments
 
-    return args
-
-def load_gal_cubes(args, califaID):
+def load_gal_cubes(arguments, califaID):
     '''
         Open PyCASSO SUPERFITS (K), EmissionLines FITS (K.EL) and
         GasProp FITS (K.GP)
 
         The directories and suffixes are in:
-        args.[pycasso_cube_[dir,suffix],
+        arguments.[pycasso_cube_[dir,suffix],
               eml_cube_[dir,suffix],
               gasprop_cube_[dir,suffix]
              ]
     '''
 
-    pycasso_cube_file = args.pycasso_cube_dir + califaID + args.pycasso_cube_suffix
+    pycasso_cube_file = arguments.pycasso_cube_dir + califaID + arguments.pycasso_cube_suffix
     K = fitsQ3DataCube(pycasso_cube_file)
-    if args.EL:
-        eml_cube_file = args.eml_cube_dir + califaID + args.eml_cube_suffix
+    if arguments.EL:
+        eml_cube_file = arguments.eml_cube_dir + califaID + arguments.eml_cube_suffix
         K.loadEmLinesDataCube(eml_cube_file)
-    if args.GP:
-        gasprop_cube_file = args.gasprop_cube_dir + califaID + args.gasprop_cube_suffix
+    if arguments.GP:
+        gasprop_cube_file = arguments.gasprop_cube_dir + califaID + arguments.gasprop_cube_suffix
         # GasProp in CALIFAUtils.objects
         K.GP = GasProp(gasprop_cube_file)
     return K
@@ -134,11 +114,11 @@ if __name__ == '__main__':
     t_init_prog = time.clock()
 
     # Parse arguments
-    args = parser_args(sys.argv[0])
-    debug_var(True, args = args.__dict__)
+    arguments = parser_args()
+    debug_var(True, args = arguments.__dict__)
 
     # open h5file
-    h5file = tbl.open_file(args.hdf5, mode =  'w', title = 'SFR data')
+    h5file = tbl.open_file(arguments.hdf5, mode =  'w', title = 'SFR data')
 
     # create h5 groups and tables within
     group = h5file.create_group('/', 'pycasso', 'Galaxy PyCASSO data', filters = tbl.Filters(1))
@@ -146,11 +126,11 @@ if __name__ == '__main__':
     tbl_zone = h5file.create_table(group, 'zones', zone, 'Zone data')
     tbl_integrated = h5file.create_table(group, 'integrated', zone, 'Integrated data')
 
-    # read gals from args.gals file
-    gals, _ = sort_gals(args.gals, order = 1)
+    # read gals from arguments.gals file
+    gals, _ = sort_gals(arguments.gals, order = 1)
     N_gals = len(gals)
     max_gals = N_gals
-    if args.debug:
+    if arguments.debug:
         max_gals = 10
 
     # set ids as zero
@@ -161,8 +141,8 @@ if __name__ == '__main__':
         t_init_gal = time.clock()
 
         # load PyCASSO Superfits, EMLines and GasProps
-        K = load_gal_cubes(args, gal)
-        sit, verify = verify_files(K, gal, EL = args.EL, GP = args.GP)
+        K = load_gal_cubes(arguments, gal)
+        sit, verify = verify_files(K, gal, EL = arguments.EL, GP = arguments.GP)
 
         # set files situation
         if verify is not True:
@@ -223,7 +203,7 @@ if __name__ == '__main__':
             'E0' : -2, 'E1' : -2, 'E2' : -2, 'E3' : -2, 'E4' : -2, 'E5' : -2,
             'E6' : -2, 'E7' : -2,
         '''
-        m_type = my_morf(get_morfologia(K.califaID, morph_file = args.morph_file)[0])
+        m_type = my_morf(get_morfologia(K.califaID, morph_file = arguments.morph_file)[0])
 
         # Prepare galaxy main data to fill main table
         # the galaxy ID will be iGal, so, gaps between ids could exists
