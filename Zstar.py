@@ -9,7 +9,7 @@ import tables as tbl
 from pystarlight.util import redenninglaws
 from CALIFAUtils.scripts import debug_var
 from tables_description import zone_Z
-from tables_description import tblZ
+from tables_description import tZ as tMet
 from rawdata import fix_dir_args
 from rawdata import verify_files
 from rawdata import load_gal_cubes
@@ -193,11 +193,11 @@ if __name__ == '__main__':
     group_description = 'minpopx:%.2f - zones calculation' % minpopx
     group = h5file.create_group('/', args.group, group_description,
                                 filters=tbl.Filters(1))
-    tbl_tZ = h5file.create_table(group, 'tSF', tblZ, 'tZ data')
+    tbl_tZ = h5file.create_table(group, 'tZ', tMet, 'tZ data')
     tbl_zone_Z = h5file.create_table(group, 'zones_Z', zone_Z, 'Z data')
     tbl_integrated_Z = h5file.create_table(group, 'integrated_Z', zone_Z, 'Z data')
 
-    tbl_tZ.append([t for t in enumerate(tZ__U)])
+    tbl_tZ.append([tZ for tZ in enumerate(tZ__U)])
     tbl_tZ.cols.id.create_csindex()
     tbl_tZ.flush()
 
