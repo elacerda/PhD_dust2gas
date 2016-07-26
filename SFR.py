@@ -157,10 +157,10 @@ if __name__ == '__main__':
     for g in tbl_gals:
         t_init_gal = time.clock()
 
-        K = load_gal_cubes(args, g['califaID'],
-                           pycasso_cube_file=g['pycasso_cube_filename'],
-                           eml_cube_file=g['eml_cube_filename'],
-                           gasprop_cube_file=g['gasprop_cube_filename'])
+        K, _ = load_gal_cubes(args, g['califaID'],
+                              pycasso_cube_file=g['pycasso_cube_filename'],
+                              eml_cube_file=g['eml_cube_filename'],
+                              gasprop_cube_file=g['gasprop_cube_filename'])
         sit, verify = verify_files(K, g['califaID'], EL=args.EL, GP=args.GP)
         # set files situation
         if verify is not True:
