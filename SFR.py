@@ -114,8 +114,8 @@ def calc_SFR(K, tSF):
     SFR__z = (aux1__z + aux2__z) / tSF
     SFRSD__z = SFR__z / K.zoneArea_pc2
 
-    #aux1__z = K.MiniSD__tZz[:indSF, :, :].sum(axis=1).sum(axis=0)
-    #aux2__z = K.MiniSD__tZz[indSF, :, :].sum(axis=0) * (tSF - aLow__t[indSF]) / (aUpp__t[indSF] - aLow__t[indSF])
+    # aux1__z = K.MiniSD__tZz[:indSF, :, :].sum(axis=1).sum(axis=0)
+    # aux2__z = K.MiniSD__tZz[indSF, :, :].sum(axis=0) * (tSF - aLow__t[indSF]) / (aUpp__t[indSF] - aLow__t[indSF])
 
     return SFR__z, SFRSD__z
 

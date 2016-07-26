@@ -20,7 +20,6 @@ def parser_args(default_args_file='default.args'):
     default_args = {
         'debug': False,
         'hdf5': 'output.h5',
-        'gals': 'listv20_q050.d15a.txt',
         'group': 'Zstar',
         'group_SF': 'SFR05050525'
     }
@@ -30,8 +29,6 @@ def parser_args(default_args_file='default.args'):
                         default=default_args['debug'])
     parser.add_argument('--hdf5', '-H', metavar='FILE', type=str,
                         default=default_args['hdf5'])
-    parser.add_argument('--gals', '-G', metavar='FILE', type=str,
-                        default=default_args['gals'])
     parser.add_argument('--pycasso_cube_dir', metavar='DIR', type=str,
                         required=True)
     parser.add_argument('--pycasso_cube_suffix', metavar='SUFFIX', type=str)
