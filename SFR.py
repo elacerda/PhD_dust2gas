@@ -12,7 +12,6 @@ from tables_description import zone_neb
 from CALIFAUtils.scripts import debug_var
 from pystarlight.util import redenninglaws
 from pystarlight.util.constants import L_sun
-from rawdata import CustomArgumentParser
 from rawdata import fix_dir_args
 from rawdata import verify_files
 from rawdata import load_gal_cubes
