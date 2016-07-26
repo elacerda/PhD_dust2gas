@@ -185,7 +185,7 @@ if __name__ == '__main__':
     tbl_zones = h5file.root.pycasso.zones
     tbl_integrated = h5file.root.pycasso.integrated
 
-    minpopx = np.float(h5file.get_node(args.group_SF)._g_gettitle().split('/')[0].split(':')[-1])
+    minpopx = np.float(h5file.get_node('/'+args.group_SF)._g_gettitle().split('/')[0].split(':')[-1])
 
     group_description = 'minpopx:%.2f - zones calculation' % minpopx
     group = h5file.create_group('/', args.group, group_description,
