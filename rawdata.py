@@ -4,7 +4,6 @@
 import os
 import sys
 import time
-import argparse as ap
 import tables as tbl
 import numpy as np
 from pycasso import fitsQ3DataCube
@@ -15,19 +14,8 @@ from CALIFAUtils.objects import GasProp
 from CALIFAUtils.scripts import debug_var
 from CALIFAUtils.scripts import sort_gals
 from CALIFAUtils.scripts import get_morfologia
+from argument_parser import CustomArgumentParser
 
-
-class CustomArgumentParser(ap.ArgumentParser):
-    def __init__(self, *args, **kwargs):
-        super(CustomArgumentParser, self).__init__(*args, **kwargs)
-
-    def convert_arg_line_to_args(self, line):
-        for arg in line.split():
-            if not arg.strip():
-                continue
-            if arg[0] == '#':
-                break
-            yield arg
 
 def parser_args(default_args_file='default.args'):
     '''

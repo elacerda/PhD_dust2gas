@@ -4,7 +4,6 @@
 import os
 import sys
 import time
-import argparse as ap
 import numpy as np
 import tables as tbl
 from tables_description import tSF
@@ -13,9 +12,11 @@ from tables_description import zone_neb
 from CALIFAUtils.scripts import debug_var
 from pystarlight.util import redenninglaws
 from pystarlight.util.constants import L_sun
+from rawdata import CustomArgumentParser
 from rawdata import fix_dir_args
 from rawdata import verify_files
 from rawdata import load_gal_cubes
+from argument_parser import CustomArgumentParser
 
 
 def parser_args(default_args_file='default.args'):
@@ -29,7 +30,7 @@ def parser_args(default_args_file='default.args'):
         'maxtauvneberr': np.finfo(np.float_).max,
     }
 
-    parser = ap.ArgumentParser(fromfile_prefix_chars='@')
+    parser = CustomArgumentParser(fromfile_prefix_chars='@')
     parser.add_argument('--debug', '-D', action='store_true',
                         default=default_args['debug'])
     parser.add_argument('--hdf5', '-H', metavar='FILE', type=str,
@@ -118,6 +119,7 @@ def calc_SFR(K, tSF):
     #aux2__z = K.MiniSD__tZz[indSF, :, :].sum(axis=0) * (tSF - aLow__t[indSF]) / (aUpp__t[indSF] - aLow__t[indSF])
 
     return SFR__z, SFRSD__z
+
 
 if __name__ == '__main__':
     # Saving the initial time
