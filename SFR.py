@@ -6,7 +6,7 @@ import sys
 import time
 import numpy as np
 import tables as tbl
-from tables_description import tSF
+from tables_description import tSF as tStarForm
 from tables_description import zone_SF
 from tables_description import zone_neb
 from CALIFAUtils.scripts import debug_var
@@ -145,7 +145,7 @@ if __name__ == '__main__':
     group_description += ' - SFR calculation'
     group = h5file.create_group('/', args.group, group_description,
                                 filters=tbl.Filters(1))
-    tbl_tSF = h5file.create_table(group, 'tSF', tSF, 'tSF data')
+    tbl_tSF = h5file.create_table(group, 'tSF', tStarForm, 'tSF data')
     tbl_zone_SF = h5file.create_table(group, 'zones_SF', zone_SF, 'tSF data')
     tbl_integrated_SF = h5file.create_table(group, 'integrated_SF', zone_SF, 'tSF data')
     tbl_zone_neb = h5file.create_table(group, 'zones_neb', zone_neb, 'Zone SF data')
@@ -179,11 +179,9 @@ if __name__ == '__main__':
         g_props__z = tbl_zones.read_where('id_gal == gid', {'gid': g['id']})
         g_int_props = tbl_integrated.read_where('id_gal == gid', {'gid': g['id']})
         id_zones = g_props__z['id']
-        _izS = np.argsort(g_props__z['id']) # zone index sorted by id
+        _izS = np.argsort(g_props__z['id'])  # zone index sorted by id
 
-        ################### NEB ###################
-        ################### NEB ###################
-        ################### NEB ###################
+        # NEB #
         tau_V_neb__z = g_props__z['tau_V_neb'][_izS]
         etau_V_neb__z = g_props__z['etau_V_neb'][_izS]
         snr_Hb__z = g_props__z['F_obs_Hb'][_izS] / g_props__z['eF_obs_Hb'][_izS]
@@ -252,9 +250,7 @@ if __name__ == '__main__':
         tbl_integrated_neb.append(integrated_zone_neb_data)
         tbl_integrated_neb.flush()
 
-        ################### SYN ###################
-        ################### SYN ###################
-        ################### SYN ###################
+        # SYN #
         tau_V__z = g_props__z['tau_V'][_izS]
         integrated_tau_V = g_int_props['tau_V']
 

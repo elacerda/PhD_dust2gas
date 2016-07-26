@@ -172,7 +172,7 @@ if __name__ == '__main__':
     lines_bpt = [4861, 5007, 6563, 6583]
 
     # Parse arguments
-    args = parser_args(sys.argv[0])
+    args = parser_args(default_args_file='Zstar_default.args')
     debug_var(True, args=args.__dict__)
 
     tZ__U = np.array([1.0, 2.0, 5.0, 8.0, 11.3, 14.2]) * 1.e9
