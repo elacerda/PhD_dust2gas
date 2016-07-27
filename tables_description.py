@@ -12,7 +12,7 @@ class galaxy(tbl.IsDescription):
     distance_Mpc = tbl.Float64Col(pos=5)
     redshift = tbl.Float64Col(pos=6)
     m_type = tbl.Int32Col(pos=7)
-    m_type_orig = tbl.Int32Col(pos=8)
+    m_type_orig = tbl.StringCol(4, pos=8)
     ba = tbl.Float64Col(pos=9)
     ba_PyCASSO = tbl.Float64Col(pos=10)
     ParsecPerPixel = tbl.Float64Col(pos=11)
