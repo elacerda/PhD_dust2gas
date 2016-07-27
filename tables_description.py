@@ -12,19 +12,20 @@ class galaxy(tbl.IsDescription):
     distance_Mpc = tbl.Float64Col(pos=5)
     redshift = tbl.Float64Col(pos=6)
     m_type = tbl.Int32Col(pos=7)
-    ba = tbl.Float64Col(pos=8)
-    ba_PyCASSO = tbl.Float64Col(pos=9)
-    ParsecPerPixel = tbl.Float64Col(pos=10)
-    Mr = tbl.Float64Col(pos=11)
-    ur = tbl.Float64Col(pos=12)
+    m_type_orig = tbl.Int32Col(pos=8)
+    ba = tbl.Float64Col(pos=9)
+    ba_PyCASSO = tbl.Float64Col(pos=10)
+    ParsecPerPixel = tbl.Float64Col(pos=11)
+    Mr = tbl.Float64Col(pos=12)
+    ur = tbl.Float64Col(pos=13)
 
     # Syn
-    HLR_pix = tbl.Float64Col(pos=13)
-    HMR_pix = tbl.Float64Col(pos=14)
+    HLR_pix = tbl.Float64Col(pos=14)
+    HMR_pix = tbl.Float64Col(pos=15)
 
-    pycasso_cube_filename = tbl.StringCol(150, pos=15)
-    eml_cube_filename = tbl.StringCol(150, pos=16)
-    gasprop_cube_filename = tbl.StringCol(150, pos=17)
+    pycasso_cube_filename = tbl.StringCol(150, pos=16)
+    eml_cube_filename = tbl.StringCol(150, pos=17)
+    gasprop_cube_filename = tbl.StringCol(150, pos=18)
 
 class zone(tbl.IsDescription):
     id_gal = tbl.UInt16Col(pos=1)

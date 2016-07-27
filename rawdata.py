@@ -218,8 +218,8 @@ if __name__ == '__main__':
             'E0' : -2, 'E1' : -2, 'E2' : -2, 'E3' : -2, 'E4' : -2, 'E5' : -2,
             'E6' : -2, 'E7' : -2,
         '''
-        m_type = my_morf(get_morfologia(K.califaID,
-                         morph_file=args.morph_file)[0])
+        m_type_orig = get_morfologia(K.califaID, morph_file=args.morph_file)[0]
+        m_type = my_morf(m_type_orig)
 
         # Prepare galaxy main data to fill main table
         # the galaxy ID will be iGal, so, gaps between ids could exists
@@ -231,6 +231,7 @@ if __name__ == '__main__':
             K.distance_Mpc,
             K.redshift,
             m_type,
+            m_type_orig,
             np.float(K.masterListData['ba']),
             ba,
             K.parsecPerPixel,
