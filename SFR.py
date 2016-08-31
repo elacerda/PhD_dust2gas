@@ -9,13 +9,13 @@ import tables as tbl
 from tables_description import tSF as tStarForm
 from tables_description import zone_SF
 from tables_description import zone_neb
-from CALIFAUtils.scripts import debug_var
+from pytu.functions import debug_var
 from pystarlight.util import redenninglaws
 from pystarlight.util.constants import L_sun
 from rawdata import fix_dir_args
 from rawdata import verify_files
 from rawdata import load_gal_cubes
-from argument_parser import CustomArgumentParser
+from pytu.objects import CustomArgumentParser
 
 
 def parser_args(default_args_file='default.args'):
@@ -196,9 +196,9 @@ if __name__ == '__main__':
         flag_tau_V_neb__z = np.less(tau_V_neb__z, args.mintauvneb)
         flag_etau_V_neb__z = np.greater(etau_V_neb__z, args.maxtauvneberr)
         mask_HaHb__z = np.bitwise_or(np.less(snr_Hb__z, 3), np.less(snr_Ha__z, 3))
-        mask_tau_V_neb__z = np.bitwise_or(flag_tau_V_neb__z,flag_etau_V_neb__z)
+        mask_tau_V_neb__z = np.bitwise_or(flag_tau_V_neb__z, flag_etau_V_neb__z)
         mask_neb = np.bitwise_or(mask_tau_V_neb__z, mask_HaHb__z)
-        expqtau = [ np.ma.exp(qcard * tau_V_neb__z) for qcard in q ]
+        expqtau = [np.ma.exp(qcard * tau_V_neb__z) for qcard in q]
         L_obs_Ha__z = K.EL._F_to_L(g_props__z['F_obs_Ha'][_izS], g['distance_Mpc']) / L_sun
         L_int_Ha__z = np.where(~(mask_neb), L_obs_Ha__z * expqtau[2], L_obs_Ha__z)
         SFR_Ha__z = 3.13 * L_int_Ha__z

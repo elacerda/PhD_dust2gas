@@ -4,6 +4,7 @@
 import numpy as np
 import tables as tbl
 
+
 class galaxy(tbl.IsDescription):
     id = tbl.UInt16Col(pos=1)
     name = tbl.StringCol(20, pos=2)
@@ -26,6 +27,7 @@ class galaxy(tbl.IsDescription):
     pycasso_cube_filename = tbl.StringCol(150, pos=16)
     eml_cube_filename = tbl.StringCol(150, pos=17)
     gasprop_cube_filename = tbl.StringCol(150, pos=18)
+
 
 class zone(tbl.IsDescription):
     id_gal = tbl.UInt16Col(pos=1)
@@ -68,8 +70,8 @@ class zone(tbl.IsDescription):
     esigma_O3 = tbl.Float64Col(pos=34, dflt=np.nan)
     esigma_Ha = tbl.Float64Col(pos=35, dflt=np.nan)
     esigma_N2 = tbl.Float64Col(pos=36, dflt=np.nan)
-    pos_Hb = tbl.Float64Col(pos=37, dflt=np.nan)
     pos_O3 = tbl.Float64Col(pos=38, dflt=np.nan)
+    pos_Hb = tbl.Float64Col(pos=37, dflt=np.nan)
     pos_Ha = tbl.Float64Col(pos=39, dflt=np.nan)
     pos_N2 = tbl.Float64Col(pos=40, dflt=np.nan)
     epos_Hb = tbl.Float64Col(pos=41, dflt=np.nan)
@@ -81,13 +83,30 @@ class zone(tbl.IsDescription):
     flag_RGB = tbl.UInt8Col(pos=46, dflt=0)
     flag_residual = tbl.UInt8Col(pos=47, dflt=0)
 
+
+# XXX TODO: XXX
+# XXX TODO: XXX
+# XXX TODO: XXX
+# class radial_profile(tbl.IsDescription):
+#     id_gal = tbl.UInt8Col(pos=1)
+#     id = tbl.UInt8Col(pos=2)
+#     N_bins = tbl.UInt8Col(pos=3, dflt=0)
+#     zones_str = tbl.UInt8Col(pos=4)
+#     mean_str = tbl.StringCol(pos=5)
+#     dtype = tbl.StringCol(8, pos=6)
+#     bin_r__str = tbl.StringCol(pos=7)
+#     bin_center_r__str = tbl.StringCol(pos=8)
+
+
 class tSF(tbl.IsDescription):
     id = tbl.UInt8Col(pos=1)
     age = tbl.Float64Col(pos=2)
 
+
 class tZ(tbl.IsDescription):
     id = tbl.UInt8Col(pos=1)
     age = tbl.Float64Col(pos=2)
+
 
 class zone_neb(tbl.IsDescription):
     id_gal = tbl.UInt16Col(pos=1)
@@ -102,6 +121,7 @@ class zone_neb(tbl.IsDescription):
     flag_tau_V_neb = tbl.UInt8Col(pos=10, dflt=0)
     flag_etau_V_neb = tbl.UInt8Col(pos=11, dflt=0)
 
+
 class zone_SF(tbl.IsDescription):
     id_gal = tbl.UInt16Col(pos=1)
     id_zone = tbl.Int64Col(pos=2, dflt=-1)
@@ -112,6 +132,7 @@ class zone_SF(tbl.IsDescription):
     SFRSD = tbl.Float64Col(pos=7, dflt=np.nan)
     flag_xY = tbl.UInt8Col(pos=8, dflt=0)
     flag_tau_V = tbl.UInt8Col(pos=9, dflt=0)
+
 
 class zone_Z(tbl.IsDescription):
     id_gal = tbl.UInt16Col(pos=1)

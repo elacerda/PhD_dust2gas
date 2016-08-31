@@ -1,4 +1,4 @@
-#
+
 # Lacerda@Saco - 15/Mar/2016
 #
 import os
@@ -11,10 +11,10 @@ from tables_description import zone
 from tables_description import galaxy
 from CALIFAUtils.scripts import my_morf
 from CALIFAUtils.objects import GasProp
-from CALIFAUtils.scripts import debug_var
+from pytu.functions import debug_var
 from CALIFAUtils.scripts import sort_gals
 from CALIFAUtils.scripts import get_morfologia
-from argument_parser import CustomArgumentParser
+from pytu.objects import CustomArgumentParser
 
 
 def parser_args(default_args_file='default.args'):
@@ -189,7 +189,7 @@ if __name__ == '__main__':
 
         # Flag to checkup all RGB EMLines flags:
         # central wl, sigma, S/N, flux >= 0
-        # flag_RGB_OK True means that the zone fullfill all RGB quality
+        # flag_RGB True means that the zone do not fullfill all RGB quality
         # requirements
         flag_RGB_OK__z = np.zeros((K.N_zone), dtype=np.bool_)
         for l in [Hb_central_wl, O3_central_wl, Ha_central_wl, N2_central_wl]:
@@ -200,7 +200,7 @@ if __name__ == '__main__':
             tmp |= K.EL._setMaskLineDisplacement(l, pos)
             tmp |= K.EL._setMaskLineSigma(l, sigma)
             tmp |= K.EL._setMaskLineSNR(l, snr)
-            flag_RGB_OK__z = np.bitwise_or(flag_RGB_OK__z, tmp)
+            flag_RGB__z = np.bitwise_or(flag_RGB__z, tmp)
 
         # calculate at_flux_GAL (whole galaxy average at_flux)
         numerator__z = K.Lobn__tZz.sum(axis=1).sum(axis=0) * K.at_flux__z
@@ -344,7 +344,7 @@ if __name__ == '__main__':
             K.EL.epos[i_Ha],
             K.EL.epos[i_N2],
             K.EL.Zneb_M13__z,
-            flag_RGB_OK__z,
+            flag_RGB__z,
             ~(K.filterResidual(w2=4600)),
         )
         # apppend zone data
