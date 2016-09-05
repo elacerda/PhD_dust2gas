@@ -1,4 +1,4 @@
-
+#!/usr/bin/python
 # Lacerda@Saco - 15/Mar/2016
 #
 import os
@@ -191,7 +191,7 @@ if __name__ == '__main__':
         # central wl, sigma, S/N, flux >= 0
         # flag_RGB True means that the zone do not fullfill all RGB quality
         # requirements
-        flag_RGB_OK__z = np.zeros((K.N_zone), dtype=np.bool_)
+        flag_RGB__z = np.zeros((K.N_zone), dtype=np.bool_)
         for l in [Hb_central_wl, O3_central_wl, Ha_central_wl, N2_central_wl]:
             pos = K.GP._dlcons[l]['pos']
             sigma = K.GP._dlcons[l]['sigma']

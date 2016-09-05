@@ -13,7 +13,7 @@ from tables_description import tZ as tMet
 from rawdata import fix_dir_args
 from rawdata import verify_files
 from rawdata import load_gal_cubes
-from argument_parser import CustomArgumentParser
+from pytu.objects import CustomArgumentParser
 
 
 def parser_args(default_args_file='default.args'):
