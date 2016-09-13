@@ -191,3 +191,11 @@ if __name__ == '__main__':
         K.GP.close()
         K.close()
     h5file.close()
+
+    x_Y__gTr.dump('x_Y__gTr.pkl')
+    McorSD__gTr.dump('McorSD__gTr.pkl')
+    SFRSD__gTr.dump('SFRSD__gTr.pkl')
+    SFRSD_neb__gTr.dump('SFRSD_neb__gTr.pkl')
+    tau_V__gTr.dump('tau_V__gTr.pkl')
+    tau_V_neb__gTr.dump('tau_V_neb__gTr.pkl')
+    logOH__gTr.dump('logOH__gTr.pkl')
