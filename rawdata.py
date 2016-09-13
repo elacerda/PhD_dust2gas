@@ -29,28 +29,17 @@ def parser_args(default_args_file='default.args'):
         'hdf5': 'output.h5',
         'gals': 'listv20_q050.d15a.txt',
     }
-
     parser = CustomArgumentParser(fromfile_prefix_chars='@')
-    parser.add_argument('--debug', '-D', action='store_true',
-                        default=default_args['debug'])
-    parser.add_argument('--hdf5', '-H', metavar='FILE', type=str,
-                        default=default_args['hdf5'])
-    parser.add_argument('--gals', '-G', metavar='FILE', type=str,
-                        default=default_args['gals'])
-    parser.add_argument('--pycasso_cube_dir', metavar='DIR', type=str,
-                        required=True)
-    parser.add_argument('--pycasso_cube_suffix', metavar='SUFFIX', type=str,
-                        required=True)
-    parser.add_argument('--eml_cube_dir', metavar='DIR', type=str,
-                        required=True)
-    parser.add_argument('--eml_cube_suffix', metavar='SUFFIX', type=str,
-                        required=True)
-    parser.add_argument('--gasprop_cube_dir', metavar='DIR', type=str,
-                        required=True)
-    parser.add_argument('--gasprop_cube_suffix', metavar='SUFFIX', type=str,
-                        required=True)
+    parser.add_argument('--debug', '-D', action='store_true', default=default_args['debug'])
+    parser.add_argument('--hdf5', '-H', metavar='FILE', type=str, default=default_args['hdf5'])
+    parser.add_argument('--gals', '-G', metavar='FILE', type=str, default=default_args['gals'])
+    parser.add_argument('--pycasso_cube_dir', metavar='DIR', type=str, required=True)
+    parser.add_argument('--pycasso_cube_suffix', metavar='SUFFIX', type=str, required=True)
+    parser.add_argument('--eml_cube_dir', metavar='DIR', type=str, required=True)
+    parser.add_argument('--eml_cube_suffix', metavar='SUFFIX', type=str, required=True)
+    parser.add_argument('--gasprop_cube_dir', metavar='DIR', type=str, required=True)
+    parser.add_argument('--gasprop_cube_suffix', metavar='SUFFIX', type=str, required=True)
     parser.add_argument('--morph_file', '-M', metavar='FILE', type=str)
-
     args_list = sys.argv[1:]
     # if exists file default.args, load default args
     if os.path.isfile(default_args_file):
@@ -62,14 +51,12 @@ def parser_args(default_args_file='default.args'):
 def fix_dir_args(args):
     args.EL = (args.eml_cube_dir is not None)
     args.GP = (args.gasprop_cube_dir is not None)
-
     if args.pycasso_cube_dir[-1] != '/':
         args.pycasso_cube_dir += '/'
     if args.EL and (args.eml_cube_dir[-1] != '/'):
         args.eml_cube_dir += '/'
     if args.GP and (args.gasprop_cube_dir[-1] != '/'):
         args.gasprop_cube_dir += '/'
-
     return args
 
 
@@ -138,8 +125,7 @@ if __name__ == '__main__':
                                 filters=tbl.Filters(1))
     tbl_main = h5file.create_table(group, 'main', galaxy, 'Main data')
     tbl_zone = h5file.create_table(group, 'zones', zone, 'Zone data')
-    tbl_integrated = h5file.create_table(group, 'integrated', zone,
-                                         'Integrated data')
+    tbl_integrated = h5file.create_table(group, 'integrated', zone, 'Integrated data')
 
     # read gals from args.gals file
     gals, _ = sort_gals(args.gals, order=1)
@@ -196,10 +182,10 @@ if __name__ == '__main__':
             pos = K.GP._dlcons[l]['pos']
             sigma = K.GP._dlcons[l]['sigma']
             snr = K.GP._dlcons[l]['SN']
-            tmp = K.EL._setMaskLineFluxNeg(l)
-            tmp |= K.EL._setMaskLineDisplacement(l, pos)
-            tmp |= K.EL._setMaskLineSigma(l, sigma)
-            tmp |= K.EL._setMaskLineSNR(l, snr)
+            tmp = np.bitwise_or(flag_RGB__z, K.EL._setMaskLineFluxNeg(l))
+            tmp = np.bitwise_or(tmp, K.EL._setMaskLineDisplacement(l, pos))
+            tmp = np.bitwise_or(tmp, K.EL._setMaskLineSigma(l, sigma))
+            tmp = np.bitwise_or(tmp, K.EL._setMaskLineSNR(l, snr))
             flag_RGB__z = np.bitwise_or(flag_RGB__z, tmp)
 
         # calculate at_flux_GAL (whole galaxy average at_flux)
