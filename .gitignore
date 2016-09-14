@@ -3,5 +3,8 @@ centaurus*.args
 *.png
 *.h5
 *.log
-hdf5/*
+*.pkl
+runs/hdf5/*
+runs/log/*
+runs/pickles/*
 list_debug.txt
