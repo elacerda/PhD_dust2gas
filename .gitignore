@@ -4,7 +4,4 @@ centaurus*.args
 *.h5
 *.log
 *.pkl
-runs/hdf5/*
-runs/log/*
-runs/pickles/*
 list_debug.txt
