@@ -61,11 +61,14 @@ if __name__ == '__main__':
     h5file = tbl.open_file(args.hdf5, mode='r+')
     tbl_gals = h5file.root.pycasso.main
     tbl_zones = h5file.root.pycasso.zones
-    # create radial_profiles hdf5 table
     group_SF = h5file.get_node('/'+args.group_SF)
     tbl_tSF = group_SF.tSF
     tbl_zones_SF = group_SF.zones_SF
+    group_Zstar = h5file.get_node('/'+args.group_Zstar)
+    tbl_tZ = group_Zstar.tZ
+    tbl_zones_Z = group_Zstar.zones_Z
 
+    # create radial_profiles hdf5 table
     # group_description = ''
     # if args.group_description is not None:
     #    group_description = args.group_description
@@ -75,6 +78,7 @@ if __name__ == '__main__':
     # tbl_x_Y = h5file.create_table(group, 'xY__T', radprof_td, table_description)
 
     gTr_shape = (len(tbl_gals), len(tbl_tSF), N_R_bins)
+    gUr_shape = (len(tbl_gals), len(tbl_tZ), N_R_bins)
     x_Y__gTr = np.ma.masked_all(gTr_shape)
     McorSD__gTr = np.ma.masked_all(gTr_shape)
     SFRSD__gTr = np.ma.masked_all(gTr_shape)
@@ -82,6 +86,8 @@ if __name__ == '__main__':
     tau_V__gTr = np.ma.masked_all(gTr_shape)
     tau_V_neb__gTr = np.ma.masked_all(gTr_shape)
     logOH__gTr = np.ma.masked_all(gTr_shape)
+    alogZ_flux__gUr = np.ma.masked_all(gUr_shape)
+    alogZ_mass__gUr = np.ma.masked_all(gUr_shape)
 
     for i_gal, g in enumerate(tbl_gals):
         t_init_gal = time.clock()
@@ -124,6 +130,19 @@ if __name__ == '__main__':
         mask_residual = np.copy(g_props__z['flag_residual'])
         mask_neb = np.bitwise_or(g_props__z['flag_RGB'], g_neb_props__z['flag_tau_V_neb'])
         mask_neb = np.bitwise_or(mask_neb, g_neb_props__z['flag_etau_V_neb'])
+
+        for i_U, tZ in enumerate(tbl_tZ):
+            # reading galaxies data
+            g_props_Z__z = tbl_zones_Z.read_where('(id_gal == gid) & (id_tZ == iU)', {'gid': g['id'], 'iU': tZ['id']})
+            id_zones = g_props_Z__z['id_zone']
+            _izS = np.argsort(id_zones)  # zone index sorted by id
+
+            alogZ_flux__z = g_props_Z__z['alogZ_flux']
+            alogZ_mass__z = g_props_Z__z['alogZ_mass']
+
+            alogZ_flux__gUr = np.ma.masked_all(gUr_shape)
+            alogZ_mass__gUr = np.ma.masked_all(gUr_shape)
+
 
         for i_T, tSF in enumerate(tbl_tSF):
             # reading galaxies data
@@ -177,6 +196,7 @@ if __name__ == '__main__':
             tau_V__gTr[i_gal, i_T, :] = K.zoneToRad(tau_V_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False)
             tau_V_neb__gTr[i_gal, i_T, :] = K.zoneToRad(tau_V_neb_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False)
             logOH__gTr[i_gal, i_T, :] = K.zoneToRad(logOH_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False)
+
 
         K.EL.close()
         K.GP.close()

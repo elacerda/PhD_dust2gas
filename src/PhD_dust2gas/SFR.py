@@ -249,15 +249,11 @@ if __name__ == '__main__':
         tbl_integrated_neb.flush()
 
         # SYN #
-        tau_V__z = g_props__z['tau_V'][_izS]
-        integrated_tau_V = g_int_props['tau_V']
-
         for iT, tSF in enumerate(tSF__T):
             x_Y__z, integrated_x_Y = calc_xY(K, tSF)
             SFR__z, SFRSD__z = calc_SFR(K, tSF)
 
             flag_xY = np.less(x_Y__z, args.minpopx)
-            flag_tau_V = np.less(tau_V__z, args.mintauv)
 
             tmp = np.zeros((g['N_zone']), dtype=np.int)
             id_tSF = tmp + iT
@@ -270,15 +266,13 @@ if __name__ == '__main__':
                 x_Y__z,
                 SFR__z,
                 SFRSD__z,
-                flag_xY,
-                flag_tau_V
+                flag_xY
             )
             tbl_zone_SF.append(zone_SF_data)
             tbl_zone_SF.flush()
             del tmp
 
             integrated_flag_xY = np.less(integrated_x_Y, args.minpopx)
-            integrated_flag_tau_V = np.less(integrated_tau_V, args.mintauv)
 
             integrated_SFR = SFR__z.sum()
             integrated_SFRSD = integrated_SFR / g_props__z['area_pc2'].sum()
@@ -291,7 +285,6 @@ if __name__ == '__main__':
                 integrated_SFR,
                 integrated_SFRSD,
                 integrated_flag_xY,
-                integrated_flag_tau_V
             )]
             tbl_integrated_SF.append(integrated_SF_data)
             tbl_integrated_SF.flush()
@@ -307,7 +300,6 @@ if __name__ == '__main__':
     tbl_zone_SF.cols.id_tSF.create_csindex()
     tbl_zone_SF.cols.i_zone.create_index()
     tbl_zone_SF.cols.flag_xY.create_index()
-    tbl_zone_SF.cols.flag_tau_V.create_index()
 
     tbl_zone_neb.cols.id_gal.create_csindex()
     tbl_zone_neb.cols.id_zone.create_csindex()
@@ -320,7 +312,6 @@ if __name__ == '__main__':
     tbl_integrated_SF.cols.id_gal.create_csindex()
     tbl_integrated_SF.cols.id_tSF.create_csindex()
     tbl_integrated_SF.cols.flag_xY.create_index()
-    tbl_integrated_SF.cols.flag_tau_V.create_index()
 
     tbl_integrated_neb.cols.id_gal.create_csindex()
     tbl_integrated_neb.cols.flag_BPT.create_index()

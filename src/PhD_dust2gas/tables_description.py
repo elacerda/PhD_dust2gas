@@ -119,7 +119,6 @@ class zone_SF(tbl.IsDescription):
     SFR = tbl.Float64Col(pos=6, dflt=np.nan)
     SFRSD = tbl.Float64Col(pos=7, dflt=np.nan)
     flag_xY = tbl.UInt8Col(pos=8, dflt=0)
-    flag_tau_V = tbl.UInt8Col(pos=9, dflt=0)
 
 
 class zone_Z(tbl.IsDescription):
