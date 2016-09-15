@@ -1,1 +1,5 @@
-@SFR_05050525.args
+--minpopx=0.05
+--mintauv=0.05
+--mintauvneb=0.05
+--maxtauvneberr=0.25
+--group=SFR05050525
