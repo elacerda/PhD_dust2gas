@@ -1,3 +1,4 @@
+import os
 import sys
 import numpy as np
 import tables as tbl
@@ -31,14 +32,14 @@ if __name__ == '__main__':
     R_bin__r = np.arange(rbinini, rbinfin + rbinstep, rbinstep)
     R_bin_center__r = (R_bin__r[:-1] + R_bin__r[1:]) / 2.0
     N_R_bins = len(R_bin_center__r)
-    pycasso_cube_dir = '/home/lacerda/CALIFA/gal_fits/v20_q050.d15a/'
-    eml_cube_dir = '/home/lacerda/CALIFA/rgb-gas/v20_q050.d15a/'
-    gasprop_cube_dir = '/home/lacerda/CALIFA/rgb-gas/v20_q050.d15a/prop/'
-    h5file = '/home/lacerda/dev/astro/PhD_dust2gas/runs/v20_q050.d15a.h5'
+    pycasso_cube_dir = '%s/CALIFA/gal_fits/v20_q050.d15a/' % os.environ['HOME']
+    eml_cube_dir = '%s/CALIFA/rgb-gas/v20_q050.d15a/' % os.environ['HOME']
+    gasprop_cube_dir = '%s/CALIFA/rgb-gas/v20_q050.d15a/prop/' % os.environ['HOME']
+    h5file = '%s/dev/astro/PhD_dust2gas/runs/v20_q050.d15a.h5' % os.environ['HOME']
     pycasso_cube_suffix = '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.fits'
     eml_cube_suffix = '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.fits'
     gasprop_cube_suffix = '_synthesis_eBR_v20_q050.d15a512.ps03.k1.mE.CCM.Bgsd6e.EML.MC100.GasProp.fits'
-    img_dir = '/home/lacerda/CALIFA/images/'
+    img_dir = '%s/CALIFA/images/' % os.environ['HOME']
     pycasso_cube_file = pycasso_cube_dir + califaID + pycasso_cube_suffix
     eml_cube_file = eml_cube_dir + califaID + eml_cube_suffix
     gasprop_cube_file = gasprop_cube_dir + califaID + gasprop_cube_suffix
