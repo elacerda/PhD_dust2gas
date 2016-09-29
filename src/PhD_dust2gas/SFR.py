@@ -199,7 +199,7 @@ if __name__ == '__main__':
         expqtau = [np.ma.exp(qcard * tau_V_neb__z) for qcard in q]
         L_obs_Ha__z = K.EL._F_to_L(g_props__z['F_obs_Ha'][_izS], g['distance_Mpc']) / L_sun
         L_int_Ha__z = np.where(~(mask_neb), L_obs_Ha__z * expqtau[2], L_obs_Ha__z)
-        SFR_Ha__z = 3.13 * L_int_Ha__z
+        SFR_Ha__z = 3.13e-8 * L_int_Ha__z
         SFRSD_Ha__z = SFR_Ha__z / g_props__z['area_pc2']
 
         tmp = np.ones((g['N_zone']), dtype=np.int)
