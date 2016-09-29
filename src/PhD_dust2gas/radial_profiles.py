@@ -7,7 +7,8 @@ import time
 import numpy as np
 import tables as tbl
 from PhD_dust2gas import *
-from pytu.objects import CustomArgumentParser
+from CALIFAUtils.scripts import create_zones_masks_gal
+from pytu.objects import CustomArgumentParser, tupperware_none
 
 
 def parser_args(default_args_file='default.args'):
@@ -26,7 +27,6 @@ def parser_args(default_args_file='default.args'):
     parser = CustomArgumentParser(fromfile_prefix_chars='@')
     parser.add_argument('--debug', '-D', action='store_true', default=dflt['debug'])
     parser.add_argument('--hdf5', '-H', metavar='FILE', type=str, default=dflt['hdf5'])
-    # parser.add_argument('--group', metavar='STR', type=str, default=dflt['group'])
     parser.add_argument('--group_description', metavar='STR', type=str, default=dflt['group_description'])
     parser.add_argument('--group_Zstar', metavar='STR', type=str, default=dflt['group_Zstar'])
     parser.add_argument('--group_SF', metavar='STR', type=str, default=dflt['group_SF'])
@@ -79,15 +79,23 @@ if __name__ == '__main__':
 
     gTr_shape = (len(tbl_gals), len(tbl_tSF), N_R_bins)
     gUr_shape = (len(tbl_gals), len(tbl_tZ), N_R_bins)
-    x_Y__gTr = np.ma.masked_all(gTr_shape)
-    McorSD__gTr = np.ma.masked_all(gTr_shape)
-    SFRSD__gTr = np.ma.masked_all(gTr_shape)
-    SFRSD_neb__gTr = np.ma.masked_all(gTr_shape)
-    tau_V__gTr = np.ma.masked_all(gTr_shape)
-    tau_V_neb__gTr = np.ma.masked_all(gTr_shape)
-    logOH__gTr = np.ma.masked_all(gTr_shape)
-    alogZ_flux__gUr = np.ma.masked_all(gUr_shape)
-    alogZ_mass__gUr = np.ma.masked_all(gUr_shape)
+    R = tupperware_none()
+    R.x_Y__gTr = np.ma.masked_all(gTr_shape)
+    R.x_Y_std__gTr = np.ma.masked_all(gTr_shape)
+    R.McorSD__gTr = np.ma.masked_all(gTr_shape)
+    R.McorSD_std__gTr = np.ma.masked_all(gTr_shape)
+    R.SFRSD__gTr = np.ma.masked_all(gTr_shape)
+    R.SFRSD_std__gTr = np.ma.masked_all(gTr_shape)
+    R.SFRSD_neb__gTr = np.ma.masked_all(gTr_shape)
+    R.SFRSD_neb_std__gTr = np.ma.masked_all(gTr_shape)
+    R.tau_V__gTr = np.ma.masked_all(gTr_shape)
+    R.tau_V_std__gTr = np.ma.masked_all(gTr_shape)
+    R.tau_V_neb__gTr = np.ma.masked_all(gTr_shape)
+    R.tau_V_neb_std__gTr = np.ma.masked_all(gTr_shape)
+    R.logOH__gTr = np.ma.masked_all(gTr_shape)
+    R.logOH_std__gTr = np.ma.masked_all(gTr_shape)
+    # R.alogZ_flux__gUr = np.ma.masked_all(gUr_shape)
+    # R.alogZ_mass__gUr = np.ma.masked_all(gUr_shape)
 
     for i_gal, g in enumerate(tbl_gals):
         t_init_gal = time.clock()
@@ -97,8 +105,7 @@ if __name__ == '__main__':
                               pycasso_cube_file=g['pycasso_cube_filename'],
                               eml_cube_file=g['eml_cube_filename'],
                               gasprop_cube_file=g['gasprop_cube_filename'])
-        sit, verify = verify_files(K, g['califaID'], EL=args.EL, GP=args.
-        GP)
+        sit, verify = verify_files(K, g['califaID'], EL=args.EL, GP=args.GP)
         # set files situation
         if verify is not True:
             print '<<< ', g['califaID'], sit
@@ -112,6 +119,34 @@ if __name__ == '__main__':
         # Set galaxy geometry using ellipses
         pa, ba = K.getEllipseParams()
         K.setGeometry(pa, ba)
+
+        aux = create_zones_masks_gal(K, tbl_tSF.cols.age[:],
+                                     mintauv=0.05,
+                                     mintauvneb=0.05,
+                                     maxtauvneberr=0.25,
+                                     minpopx=0.05,
+                                     minEWHb=3,
+                                     minSNR=3,
+                                     minSNRHb=3,
+                                     nolinecuts=False,
+                                     rgbcuts=True,
+                                     underS06=False,
+                                     whanSF=False,
+                                     filter_residual=True,
+                                     summary=True)
+        mask__Tz = aux[0]
+        mask_syn__Tz = aux[1]
+        mask_eml__z = aux[2]
+        mask_popx__Tz = aux[3]
+        mask_tau_V__z = aux[4]
+        mask_residual__z = aux[5]
+        mask_tau_V_neb__z = aux[6]
+        mask_tau_V_neb_err__z = aux[7]
+        mask_EW_Hb__z = aux[8]
+        mask_whan__z = aux[9]
+        mask_bpt__z = aux[10]
+        mask_lines_dict__Lz = aux[11]
+
         debug_var(True, galaxy=g['califaID'], N_zone=g['N_zone'])
         g_props__z = tbl_zones.read_where('id_gal == gid', {'gid': g['id']})
         g_neb_props__z = group_SF.zones_neb.read_where('id_gal == gid', {'gid': g['id']})
@@ -126,23 +161,22 @@ if __name__ == '__main__':
         tau_V_neb__z = g_props__z['tau_V_neb']
         logOH__z = g_props__z['logOH']
 
-        # Mask: zones to create radial profile.
-        mask_residual = np.copy(g_props__z['flag_residual'])
-        mask_neb = np.bitwise_or(g_props__z['flag_RGB'], g_neb_props__z['flag_tau_V_neb'])
-        mask_neb = np.bitwise_or(mask_neb, g_neb_props__z['flag_etau_V_neb'])
+        # # Mask: zones to create radial profile.
+        # mask_residual = np.copy(g_props__z['flag_residual'])
+        # mask_neb = np.bitwise_or(g_props__z['flag_RGB'], g_neb_props__z['flag_tau_V_neb'])
+        # mask_neb = np.bitwise_or(mask_neb, g_neb_props__z['flag_etau_V_neb'])
 
-        for i_U, tZ in enumerate(tbl_tZ):
-            # reading galaxies data
-            g_props_Z__z = tbl_zones_Z.read_where('(id_gal == gid) & (id_tZ == iU)', {'gid': g['id'], 'iU': tZ['id']})
-            id_zones = g_props_Z__z['id_zone']
-            _izS = np.argsort(id_zones)  # zone index sorted by id
-
-            alogZ_flux__z = g_props_Z__z['alogZ_flux']
-            alogZ_mass__z = g_props_Z__z['alogZ_mass']
-
-            alogZ_flux__gUr = np.ma.masked_all(gUr_shape)
-            alogZ_mass__gUr = np.ma.masked_all(gUr_shape)
-
+        # for i_U, tZ in enumerate(tbl_tZ):
+        #     # reading galaxies data
+        #     g_props_Z__z = tbl_zones_Z.read_where('(id_gal == gid) & (id_tZ == iU)', {'gid': g['id'], 'iU': tZ['id']})
+        #     id_zones = g_props_Z__z['id_zone']
+        #     _izS = np.argsort(id_zones)  # zone index sorted by id
+        #
+        #     alogZ_flux__z = g_props_Z__z['alogZ_flux']
+        #     alogZ_mass__z = g_props_Z__z['alogZ_mass']
+        #
+        #     alogZ_flux__gUr = np.ma.masked_all(gUr_shape)
+        #     alogZ_mass__gUr = np.ma.masked_all(gUr_shape)
 
         for i_T, tSF in enumerate(tbl_tSF):
             # reading galaxies data
@@ -154,14 +188,7 @@ if __name__ == '__main__':
             SFR__z = g_props_SF__z['SFR']
             SFRSD__z = g_props_SF__z['SFRSD']
 
-            # debug_var(True, iT=tSF['id'], tSF=tSF['age'], shape=x_Y__z.shape,
-            #           x_Y__z=x_Y__z)
-            # tSF flagged zones
-            mask_SF = np.bitwise_or(g_props_SF__z['flag_tau_V'], g_props_SF__z['flag_xY'])
-
-            mask_tmp = np.bitwise_or(mask_residual, mask_neb)
-            mask_tmp = np.bitwise_or(mask_tmp, mask_SF)
-            mask_tmp = np.bitwise_or(mask_tmp, ~(np.isfinite(Mcor__z)))
+            mask_tmp = np.bitwise_or(mask__Tz[i_T], ~(np.isfinite(Mcor__z)))
             mask_tmp = np.bitwise_or(mask_tmp, ~(np.isfinite(McorSD__z)))
             mask_tmp = np.bitwise_or(mask_tmp, ~(np.isfinite(at_mass__z)))
             mask_tmp = np.bitwise_or(mask_tmp, ~(np.isfinite(at_flux__z)))
@@ -183,33 +210,52 @@ if __name__ == '__main__':
             at_flux_m__z = np.ma.masked_array(at_flux__z, mask=mask_tmp)
             tau_V_m__z = np.ma.masked_array(tau_V__z, mask=mask_tmp)
             tau_V_neb_m__z = np.ma.masked_array(tau_V_neb__z, mask=mask_tmp)
-            SFR_neb_m__z = np.ma.masked_array(SFR_neb__z, mask=mask_tmp)
-            SFRSD_neb_m__z = np.ma.masked_array(SFRSD_neb__z, mask=mask_tmp)
-            logOH_m__z = np.ma.masked_array(logOH__z, mask=mask_tmp)
             SFR_m__z = np.ma.masked_array(SFR__z, mask=mask_tmp)
-            SFRSD_m__z = np.ma.masked_array(SFRSD__z, mask=mask_tmp)
+            SFR_neb_m__z = np.ma.masked_array(SFR_neb__z, mask=mask_tmp)
+            logOH_m__z = np.ma.masked_array(logOH__z, mask=mask_tmp)
 
-            x_Y__gTr[i_gal, i_T, :] = K.zoneToRad(x_Y_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False)
-            McorSD__gTr[i_gal, i_T, :] = K.zoneToRad(McorSD_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False)
-            SFRSD__gTr[i_gal, i_T, :] = K.zoneToRad(SFRSD_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False)
-            SFRSD_neb__gTr[i_gal, i_T, :] = K.zoneToRad(SFRSD_neb_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False)
-            tau_V__gTr[i_gal, i_T, :] = K.zoneToRad(tau_V_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False)
-            tau_V_neb__gTr[i_gal, i_T, :] = K.zoneToRad(tau_V_neb_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False)
-            logOH__gTr[i_gal, i_T, :] = K.zoneToRad(logOH_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False)
-
+            R.x_Y__gTr[i_gal, i_T, :] = K.zoneToRad(x_Y_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False)
+            R.x_Y_std__gTr[i_gal, i_T, :] = K.zoneToRad(x_Y_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False, mode='std')
+            R.McorSD__gTr[i_gal, i_T, :] = K.zoneToRad(McorSD_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False)
+            R.McorSD_std__gTr[i_gal, i_T, :] = K.zoneToRad(McorSD_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False, mode='std')
+            R.SFRSD__gTr[i_gal, i_T, :] = K.zoneToRad(SFR_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=True, surface_density=True)
+            R.SFRSD_std__gTr[i_gal, i_T, :] = K.zoneToRad(SFR_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=True, surface_density=True, mode='std')
+            R.SFRSD_neb__gTr[i_gal, i_T, :] = K.zoneToRad(SFR_neb_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=True, surface_density=True)
+            R.SFRSD_neb_std__gTr[i_gal, i_T, :] = K.zoneToRad(SFR_neb_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=True, surface_density=True, mode='std')
+            R.tau_V__gTr[i_gal, i_T, :] = K.zoneToRad(tau_V_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False)
+            R.tau_V_std__gTr[i_gal, i_T, :] = K.zoneToRad(tau_V_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False, mode='std')
+            R.tau_V_neb__gTr[i_gal, i_T, :] = K.zoneToRad(tau_V_neb_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False)
+            R.tau_V_neb_std__gTr[i_gal, i_T, :] = K.zoneToRad(tau_V_neb_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False, mode='std')
+            R.logOH__gTr[i_gal, i_T, :] = K.zoneToRad(logOH_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False)
+            R.logOH_std__gTr[i_gal, i_T, :] = K.zoneToRad(logOH_m__z, R_bin__r, rad_scale=K.HLR_pix, extensive=False, mode='std')
 
         K.EL.close()
         K.GP.close()
         K.close()
+
     h5file.close()
 
     pickle_dir = '%s/dev/astro/PhD_dust2gas/runs/pickles' % os.environ['HOME']
     pickle_ext = '.pkl'
 
-    x_Y__gTr.dump('%s/x_Y__gTr%s' % (pickle_dir, pickle_ext))
-    McorSD__gTr.dump('%s/McorSD__gTr%s' % (pickle_dir, pickle_ext))
-    SFRSD__gTr.dump('%s/SFRSD__gTr%s' % (pickle_dir, pickle_ext))
-    SFRSD_neb__gTr.dump('%s/SFRSD_neb__gTr%s' % (pickle_dir, pickle_ext))
-    tau_V__gTr.dump('%s/tau_V__gTr%s' % (pickle_dir, pickle_ext))
-    tau_V_neb__gTr.dump('%s/tau_V_neb__gTr%s' % (pickle_dir, pickle_ext))
-    logOH__gTr.dump('%s/logOH__gTr%s' % (pickle_dir, pickle_ext))
+    print 'dumping pickles...'
+    for k in R.__dict__:
+        attr = getattr(R, k)
+        if isinstance(attr, np.ma.MaskedArray):
+            debug_var(True, attr=k)
+            attr.dump('%s/%s%s' % (pickle_dir, k, pickle_ext))
+
+    # x_Y__gTr.dump('%s/x_Y__gTr%s' % (pickle_dir, pickle_ext))
+    # McorSD__gTr.dump('%s/McorSD__gTr%s' % (pickle_dir, pickle_ext))
+    # SFRSD__gTr.dump('%s/SFRSD__gTr%s' % (pickle_dir, pickle_ext))
+    # SFRSD_neb__gTr.dump('%s/SFRSD_neb__gTr%s' % (pickle_dir, pickle_ext))
+    # tau_V__gTr.dump('%s/tau_V__gTr%s' % (pickle_dir, pickle_ext))
+    # tau_V_neb__gTr.dump('%s/tau_V_neb__gTr%s' % (pickle_dir, pickle_ext))
+    # logOH__gTr.dump('%s/logOH__gTr%s' % (pickle_dir, pickle_ext))
+    # x_Y_std__gTr.dump('%s/x_Y_std__gTr%s' % (pickle_dir, pickle_ext))
+    # McorSD_std__gTr.dump('%s/McorSD_std__gTr%s' % (pickle_dir, pickle_ext))
+    # SFRSD_std__gTr.dump('%s/SFRSD_std__gTr%s' % (pickle_dir, pickle_ext))
+    # SFRSD_neb_std__gTr.dump('%s/SFRSD_neb_std__gTr%s' % (pickle_dir, pickle_ext))
+    # tau_V_std__gTr.dump('%s/tau_V_std__gTr%s' % (pickle_dir, pickle_ext))
+    # tau_V_neb_std__gTr.dump('%s/tau_V_neb_std__gTr%s' % (pickle_dir, pickle_ext))
+    # logOH_std__gTr.dump('%s/logOH_std__gTr%s' % (pickle_dir, pickle_ext))
