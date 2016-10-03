@@ -121,6 +121,8 @@ if __name__ == '__main__':
         K.setGeometry(pa, ba)
 
         aux = create_zones_masks_gal(K, tbl_tSF.cols.age[:],
+                                     return_mask_lines_separated=True,
+                                     mask_lines_snr_only=True,
                                      mintauv=0.05,
                                      mintauvneb=0.05,
                                      maxtauvneberr=0.25,
@@ -145,7 +147,7 @@ if __name__ == '__main__':
         mask_EW_Hb__z = aux[8]
         mask_whan__z = aux[9]
         mask_bpt__z = aux[10]
-        mask_lines_dict__Lz = aux[11]
+        mask_lines_dict__Lmz = aux[11]
 
         debug_var(True, galaxy=g['califaID'], N_zone=g['N_zone'])
         g_props__z = tbl_zones.read_where('id_gal == gid', {'gid': g['id']})
